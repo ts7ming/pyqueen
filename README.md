@@ -2,32 +2,34 @@
 
 ## 安装
 ```bash
-# 安装 & 卸载
-$ pip3 install pyqueen --upgrade
-$ pip3 uninstall pyqueen
+pip3 install pyqueen --upgrade
+pip3 uninstall pyqueen
 ```
 
 ## DataSource
-
-
-
-## 模块
-### etl-基础etl功能
-#### 数据源管理: DataSource
 ```python
 from pyqueen import DataSource
 # ds实例化
-ds = DataSource(host,username,password,port,db_name,db_type)
 # db_type: MySQL(default),Oracle,MSSQL, clickhouse, SQLite
+ds = DataSource(host,username,password,port,db_name,db_type)
 
 # 根据sql查询, 返回 pd.DataFrame对象
 df = ds.get_sql(sql_text)
 
 # 将 pd.DataFrame对象 写入数据库
-ds.to_db(df_to_write_in, table_name, how='append', fast_load=False)
 # fast_load: 仅支持MySQL, 将 pd.DataFrame对象 写入临时csv再快速导入数据库 (如果数据包含特殊字符容易出错, 慎用)
+ds.to_db(df_to_write_in, table_name, how='append', fast_load=False)
 
 # 将 pd.DataFrame对象 写入Excel文件
+# file_path 文件路径 (须以 .xlsx 结尾)
+# sheet_list 待写入数据, 二维列表, 每个 pd.DataFrame对象 对应一个 sheet
+# fillna='' 空值填充
+# fmt=None 字段格式,可以按字段名指定
+# font='微软雅黑' 字体
+# font_color='black' 字体颜色
+# font_size=11 字体大小
+# column_width=17 单元格宽度
+
 sheet_list = [
 	[df1, 'sheet_name1'],
 	[df2,'sheet_name2']
@@ -40,14 +42,6 @@ fmt={
 	'col5':'YYYY-MM-DD'
 }
 ds.to_excel(file_path, sheet_list, fmt=fmt)
-# file_path 文件路径 (须以 .xlsx 结尾)
-# sheet_list 待写入数据, 二维列表, 每个 pd.DataFrame对象 对应一个 sheet
-# fillna='' 空值填充
-# fmt=None 字段格式,可以按字段名指定
-# font='微软雅黑' 字体
-# font_color='black' 字体颜色
-# font_size=11 字体大小
-# column_width=17 单元格宽度
 
 # 执行sql
 ds.exe_sql(sql_text)
@@ -56,8 +50,7 @@ ds.exe_sql(sql_text)
 ds.delete_file(path)
 ```
 
-#### 时间工具箱: TimeKit
-
+#### TimeKit
 ```python
 from pyqueen import TimeKit
 
@@ -106,9 +99,6 @@ n = get_nday_of_week(day)
 date_str = tk.int2str(date_int, sep='-')
 ```
 
-### service-通用服务
-- 通用服务
-
 #### service.Email
 ```python
 from pyqueen.service import Email
@@ -151,51 +141,4 @@ wechat.send_image(base64, md5)
 # 发送文件类型
 # file_path: 文件路径
 wechat.send_file(file_path)
-```
-
-### utils-通用开发工具
-
-#### utils.Ftp
-
-```python
-# ftp工具
-from pyqueen.utils import Ftp
-ftp = Ftp(host, port, username, password)
-
-# 创建ftp连接
-ftp.create_connect()
-
-# ftp上传
-# remote_path: 远程服务器路径，local_path: 本地路径
-ftp.upload_file(remote_path, local_path)
-
-# ftp下载
-# remote_path: 远程服务器路径，local_path: 本地路径
-ftp.download_file(remote_path, local_path)
-
-# ftp进入指定目录
-# remote_path: 远程服务器路径
-ftp.cd_remote_path(remote_path, local_path)
-
-# ftp获取当前目录下所有文件
-# remote_path: 远程服务器路径
-# return: 当前目录下所有文件（列表格式）
-path_list = ftp.loop_remote_list(remote_path, local_path)
-
-# ftp移动文件
-# from_path: 原始路径，to_path: 最终路径
-ftp.move_remote_file(remote_path, local_path)
-```
-
-#### utils.Zip
-```python
-from pyqueen.utils import Zip
-
-zip = Zip(from_path, to_path)
-
-# 解压
-zip.unzip()
-
-# 压缩
-zip.pack()
 ```
