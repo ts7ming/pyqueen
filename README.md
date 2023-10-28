@@ -51,6 +51,9 @@ ds.to_excel(file_path, sheet_list, fmt=fmt)
 
 # 执行sql
 ds.exe_sql(sql_text)
+
+# 删除文件,文件夹,子文件夹
+ds.delete_file(path)
 ```
 
 #### 时间工具箱: TimeKit
