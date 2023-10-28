@@ -3,7 +3,8 @@ from copy import copy
 import requests
 import json
 import os
-
+import hashlib
+import base64
 
 class Wechat:
     """
@@ -81,6 +82,24 @@ class Wechat:
                 self.__operator({'content': content, 'func': 'pykoala.Wechat.send_markdown'})
             except:
                 pass
+
+    def send(self, content=None, mentioned_list=None, mentioned_mobile_lis=None, file_path=None, img_path=None):
+        if content is not None:
+            if mentioned_list is None:
+                mentioned_list = []
+            if mentioned_mobile_lis is None:
+                mentioned_mobile_lis = []
+            self.send_text(content, mentioned_list, mentioned_mobile_lis)
+        if file_path is not None:
+            self.send_file(file_path)
+        if img_path is not None:
+            with open(img_path, "rb") as f:
+                md = hashlib.md5()
+                md.update(f.read())
+                image_md5 = md.hexdigest()
+            with open(img_path, "rb") as f:
+                image_data = str(base64.b64encode(f.read()), 'utf-8')
+            self.send_image(image_data, image_md5)
 
     def send_image(self, base64, md5):
         """
