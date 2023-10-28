@@ -246,40 +246,13 @@ class DataSource(object):
         rows = df.values[0][0]
         return int(rows)
 
-    def read_sql(self, sql, ret_type='pandas'):
-        import polars as pl
-        if self.db_type.lower() == 'mysql':
-            url = "mysql://{username}:{password}@{host}:{port}/{db_name}".format(**self.__db_conn)
-        elif self.db_type.lower() == 'oracle':
-            url = "oracle://{username}:{password}@{host}:{port}/{db_name}".format(**self.__db_conn)
-        # elif self.db_type.lower() == 'clickhouse':
-        #     url = "clickhouse://{username}:{password}@{host}:{port}/{db_name}".format(**self.__db_conn)
-        else:
-            url = None
-        if url is None:
-            df = self.get_sql(sql)
-            if ret_type == 'polars':
-                df = pl.from_pandas(df)
-        else:
-            try:
-                df = pl.read_sql(sql, url)
-                if ret_type == 'pandas':
-                    df = df.to_pandas()
-            except:
-                print('polars读取出错, 自动使用pandas读取')
-                df = self.get_sql(sql)
-                if ret_type == 'polars':
-                    df = pl.from_pandas(df)
-        return df
-
     @staticmethod
     def read_excel(path, sheet_name=None):
         df = pd.read_excel(path, sheet_name=sheet_name)
         return df
 
     @staticmethod
-    def to_excel(file_path, sheet_list, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11,
-                 column_width=17):
+    def to_excel(file_path, sheet_list, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11,column_width=17):
 
         '''
         **DataFrame对象写入Excel文件**
