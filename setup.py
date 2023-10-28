@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pyqueen',
-    version='1.0.1',
+    version='1.0.3',
     url='https://github.com/ts7ming/pyqueen.git',
     description='command your data',
     long_description=open("README.md",encoding='utf-8').read(),
