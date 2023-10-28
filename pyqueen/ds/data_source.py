@@ -1,10 +1,10 @@
-from excel import Excel
+from pyqueen.ds.excel import Excel
 
 
 class DataSource:
     def __init__(self, host=None, username=None, password=None, port=None, db_name=None, db_type='MySQL'):
         if str(db_type).lower() in ('mysql', 'mssql', 'oracle', 'clickhouse', 'sqlite'):
-            from db import DB
+            from pyqueen.ds.db import DB
             self.__db = DB(host=host, username=username, password=password, port=port, db_name=db_name, db_type=db_type)
         if str(db_type).lower() == 'ftp':
             from ftp import FTP
