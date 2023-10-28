@@ -113,6 +113,7 @@ class Email:
             raise Exception('邮件发送失败：%s' % ee)
         if self.__operator is not None:
             try:
-                self.__operator({'subject': subject, 'content': content, 'to_user': to_user, 'cc_user': cc_user, 'file_path_list': file_path_list, 'func': 'pykoala.Email.send_file'})
+                self.__operator({'subject': subject, 'content': content, 'to_user': to_user, 'cc_user': cc_user, 'file_path_list': file_path_list,
+                                 'func': 'pykoala.Email.send_file'})
             except:
                 pass

@@ -6,10 +6,6 @@ import os
 
 
 class Dingtalk:
-    """
-    发送微信
-    """
-
     def __init__(self, access_token):
         """
         初始化
@@ -18,15 +14,8 @@ class Dingtalk:
         self.url = "https://oapi.dingtalk.com/robot/send?access_token=%s" % str(access_token)
         self.header = {"Content-Type": "application/json"}
         self.msg = {}
-        self.__operator = None
 
-    def set_operator(self, func):
-        self.__operator = func
-
-    def send_text(self,
-                  content,
-                  mentioned_list=None,
-                  mentioned_mobile_list=None):
+    def send(self, content, mentioned_list=None, mentioned_mobile_list=None):
         """
         文本类型
         :param content: 文本内容，最长不超过2048个字节，必须是utf8编码
@@ -51,35 +40,6 @@ class Dingtalk:
                 raise Exception('微信发送失败')
         except Exception as ee:
             raise Exception('微信发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator({'content': content, 'mentioned_list': mentioned_list, 'func': 'pymro.Wechat.send_text'})
-            except:
-                pass
-
-    def send_markdown(self, content):
-        """
-        markdown类型
-        :param content: markdown内容，最长不超过4096个字节，必须是utf8编码
-        :return:
-        """
-        try:
-            self.msg['msgtype'] = 'markdown'
-            self.msg['markdown'] = {}
-            self.msg['markdown']['content'] = content
-            res = json.loads(
-                requests.post(url=self.url,
-                              data=json.dumps(self.msg),
-                              headers=self.header).text)
-            if res['errmsg'] != 'ok':
-                raise Exception('微信发送失败')
-        except Exception as ee:
-            raise Exception('微信发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator({'content': content, 'func': 'pymro.Wechat.send_markdown'})
-            except:
-                pass
 
     def send_image(self, base64, md5):
         """
@@ -101,11 +61,6 @@ class Dingtalk:
                 raise Exception('微信发送失败')
         except Exception as ee:
             raise Exception('微信发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator({'func': 'pymro.Wechat.send_image'})
-            except:
-                pass
 
     def send_file(self, file_path):
         """
@@ -140,8 +95,3 @@ class Dingtalk:
                 raise Exception('微信发送失败')
         except Exception as ee:
             raise Exception('微信发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator({'file_path': file_path, 'func': 'pymro.Wechat.send_file'})
-            except:
-                pass

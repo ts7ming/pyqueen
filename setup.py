@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pyqueen',
-    version='1.0.0',
+    version='1.0.1',
     url='https://github.com/ts7ming/pyqueen.git',
     description='command your data',
     long_description=open("README.md").read(),
@@ -23,7 +23,7 @@ setup(
         'PyMySQL',
         'requests',
         'socket.engine',
-        'SQLAlchemy',
+        'SQLAlchemy==1.4.49',
         'xlrd==1.2.0',
         'XlsxWriter'
     ],
