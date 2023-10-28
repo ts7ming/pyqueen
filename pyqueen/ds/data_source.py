@@ -1,4 +1,4 @@
-from excel import Excel
+from pyqueen.ds.excel import Excel
 
 
 class DataSource:
