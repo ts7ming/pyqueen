@@ -4,7 +4,7 @@ setup(
     name='pyqueen',
     version='1.0.4',
     url='https://github.com/ts7ming/pyqueen.git',
-    description='command your data',
+    description='Rule your Data',
     long_description=open("README.md",encoding='utf-8').read(),
     long_description_content_type="text/markdown",
     author='ts7ming',
