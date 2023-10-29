@@ -1,4 +1,5 @@
 site_name: PyQueen - Rule your Data
+docs_dir: .
 nav:
   - Home: README.md
 theme: readthedocs
