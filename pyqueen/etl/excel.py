@@ -11,22 +11,6 @@ class Excel:
 
     @staticmethod
     def to_excel(file_path, sheet_list, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11,column_width=17):
-
-        '''
-        **DataFrame对象写入Excel文件**
-        路径不存在时自动创建
-        :param file_path: 文件路径 (须以 .xlsx结尾)
-        :param sheet_list: list [[dataframe,sheet_name],[dataframe2,sheet_name2]]
-
-        fmt={
-            'col1':'#,##0',
-            'col2':'#,##0.0',
-            'col3':'0%',
-            'col4':'0.00%',
-            'col5':'YYYY-MM-DD',
-            ''
-        }
-        '''
         if str(file_path)[-5:] != '.xlsx':
             raise Exception('文件路径必须 .xlsx 结尾')
         if os.path.exists(os.path.dirname(file_path)) is False:
