@@ -13,6 +13,9 @@ pip install pyqueen
 ```
 
 ## Doc
+- [readthedocs](https://pyqueen.readthedocs.io/zh-cn/latest/)
+- 示例: example/*
+
 #### 读写数据库
 - dbtype: 可选 mysql,mssql,oracle,clickhouse,sqlite
 - 每次操作数据库都会销毁连接, 无需手动close_conn. 如需手动控制连接 添加: `ds.keep_conn()`
@@ -126,6 +129,26 @@ n = tk.get_nday_of_week(20200101)
 # 数值型日期转字符串
 date_str = tk.int2str(20200101, sep='-')
 ```
+
+#### ETL日志
+- 记录所有 `DataSource` 类函数的调用过程和相应参数
+- 如需启用日志, 添加: `ds.set_logger(logger)`
+- 其中 `logger` 为日志处理函数, 默认为: `print`
+- 自定义 `logger` 参考 `example/etl_with_log.py`
+- `etl_log` 所有 **key**
+    - py_path: 调用脚本路径
+    - func_name: 调用函数名
+    - start_time: 过程开始时间
+    - end_time: 过程结束时间
+    - duration: 过程耗时(秒)
+    - message: (如有) 备注信息
+    - file_path: (如有) 文件路径
+    - sql_text: (如有) sql
+    - host: (如有) 服务器地址
+    - db_type: (如有) 数据库类型
+    - port: (如有) 端口
+    - db_name: (如有) 数据库名
+    - table_name: (如有) 表名
 
 #### 发送信息
 - 邮件

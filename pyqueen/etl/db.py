@@ -19,7 +19,7 @@ class DB(object):
         self.__operator = None
         self.__keep_conn = 0
         self.charset = 'utf8mb4'
-        if db_type.lower() != 'sqlite':
+        if db_type.lower() != 'sqlite' and password is not None:
             self.username = username
             self.password = quote_plus(password)
             self.port = port

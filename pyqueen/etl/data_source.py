@@ -1,10 +1,7 @@
-"""
-DataSource: 统一的额数据源管理
-
-将数据库,Excel文件,FTP文件服务集成到 DataSource
-"""
+import datetime
 
 from pyqueen.etl.excel import Excel
+import inspect
 
 
 class DataSource:
@@ -15,7 +12,56 @@ class DataSource:
         if str(db_type).lower() == 'ftp':
             from ftp import FTP
             self.__ftp = FTP(username=username, password=password, host=host, port=port)
-        self.excel = Excel()
+        self.__excel = Excel()
+        self.__logger = None
+        self.__host = host
+        self.__username = username
+        self.__port = port
+        self.__db_name = db_name
+        self.__db_type = db_type
+        self.__etl_log = {}
+        self.__etl_param_sort = [
+            'py_path',
+            'func_name',
+            'start_time',
+            'end_time',
+            'duration',
+            'message',
+            'file_path',
+            'sql_text',
+            'host',
+            'db_type',
+            'port',
+            'db_name',
+            'table_name'
+        ]
+
+    def set_logger(self, logger=print):
+        self.__logger = logger
+
+    def set_db(self, db_name):
+        self.__db_name = db_name
+        self.__db.set_db(db_name=db_name)
+
+    def set_chunksize(self, chunksize):
+        if self.__logger is not None:
+            self.__start()
+            self.__etl_log['message'] = '设置chunksize为: ' + str(chunksize)
+            self.__end()
+        self.__db.set_chunksize(chunksize=chunksize)
+
+    def set_charset(self, charset):
+        if self.__logger is not None:
+            self.__start()
+            self.__etl_log['message'] = '设置字符集为: ' + str(charset)
+            self.__end()
+        self.__db.set_charset(charset=charset)
+
+    def keep_conn(self):
+        self.__db.keep_conn()
+
+    def close_conn(self):
+        self.__db.close_conn()
 
     def get_sql(self, sql):
         """
@@ -23,7 +69,17 @@ class DataSource:
         :param sql: 待查询 sql
         :return:
         """
-        return self.__db.get_sql(sql)
+        if self.__logger is not None:
+            self.__start()
+            self.__etl_log['sql_text'] = str(sql).strip('\n').strip(' ')
+            self.__etl_log['host'] = self.__host
+            self.__etl_log['port'] = str(self.__port)
+            self.__etl_log['db_name'] = self.__db_name
+            self.__etl_log['db_type'] = self.__db_type
+        ret = 1  # self.__db.get_sql(sql)
+        if self.__logger is not None:
+            self.__end()
+        return ret
 
     def get_value(self, sql):
         """
@@ -32,7 +88,17 @@ class DataSource:
         :param sql: 待查询 sql
         :return:
         """
-        return self.__db.get_value(sql)
+        if self.__logger is not None:
+            self.__start()
+            self.__etl_log['sql_text'] = str(sql).strip('\n').strip(' ')
+            self.__etl_log['host'] = self.__host
+            self.__etl_log['port'] = str(self.__port)
+            self.__etl_log['db_name'] = self.__db_name
+            self.__etl_log['db_type'] = self.__db_type
+        ret = self.__db.get_value(sql)
+        if self.__logger is not None:
+            self.__end()
+        return ret
 
     def to_db(self, df, tb_name: str, fast_load: str = False, how: str = 'append'):
         """
@@ -42,7 +108,16 @@ class DataSource:
         :param fast_load: 是否快速导入模式, 仅支持 mysql
         :param how: append/replace
         """
+        if self.__logger is not None:
+            self.__start()
+            self.__etl_log['table_name'] = tb_name
+            self.__etl_log['host'] = self.__host
+            self.__etl_log['port'] = str(self.__port)
+            self.__etl_log['db_name'] = self.__db_name
+            self.__etl_log['db_type'] = self.__db_type
         self.__db.to_db(df=df, tb_name=tb_name, fast_load=fast_load, how=how)
+        if self.__logger is not None:
+            self.__end()
 
     def exe_sql(self, sql):
         """
@@ -50,7 +125,16 @@ class DataSource:
         :param sql: 待执行 sql
         :return:
         """
+        if self.__logger is not None:
+            self.__start()
+            self.__etl_log['sql_text'] = str(sql).strip('\n').strip(' ')
+            self.__etl_log['host'] = self.__host
+            self.__etl_log['port'] = str(self.__port)
+            self.__etl_log['db_name'] = self.__db_name
+            self.__etl_log['db_type'] = self.__db_type
         self.__db.exe_sql(sql)
+        if self.__logger is not None:
+            self.__end()
 
     def get_tmp_file(self):
         """
@@ -65,7 +149,12 @@ class DataSource:
         :param path:
         :return:
         """
-        self.excel.delete_file(path)
+        if self.__logger is not None:
+            self.__start()
+            self.__etl_log['file_path'] = path
+        self.__excel.delete_file(path)
+        if self.__logger is not None:
+            self.__end()
 
     def to_excel(self, file_path, sheet_list, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11, column_width=17):
         '''
@@ -83,7 +172,10 @@ class DataSource:
             ''
         }
         '''
-        self.excel.to_excel(
+        if self.__logger is not None:
+            self.__start()
+            self.__etl_log['file_path'] = file_path
+        self.__excel.to_excel(
             file_path=file_path,
             sheet_list=sheet_list,
             fillna=fillna, fmt=fmt,
@@ -92,6 +184,8 @@ class DataSource:
             font_size=font_size,
             column_width=column_width
         )
+        if self.__logger is not None:
+            self.__end()
 
     def read_excel(self, path, sheet_name=None):
         """
@@ -100,7 +194,12 @@ class DataSource:
         :param sheet_name: sheet名
         :return:
         """
-        self.excel.read_excel(path=path, sheet_name=sheet_name)
+        if self.__logger is not None:
+            self.__start()
+            self.__etl_log['file_path'] = path
+        self.__excel.read_excel(path=path, sheet_name=sheet_name)
+        if self.__logger is not None:
+            self.__end()
 
     def download_ftp(self, local_dir, remote_dir):
         """
@@ -110,4 +209,35 @@ class DataSource:
         :param remote_dir: 远程目录
         :return:
         """
+        if self.__logger is not None:
+            self.__start()
+            self.__etl_log['file_path'] = remote_dir
+            self.__etl_log['host'] = self.__host
+            self.__etl_log['port'] = str(self.__port)
+            self.__etl_log['db_type'] = self.__db_type
         self.__ftp.download_folder(local_dir=local_dir, remote_dir=remote_dir)
+        if self.__logger is not None:
+            self.__end()
+
+    def __start(self):
+        self.__t_start = datetime.datetime.now()
+        import inspect
+        a = inspect.stack()[2]
+        file_name = a.filename
+        func = a.function
+        self.__etl_log['start_time'] = str(self.__t_start.strftime('%Y-%m-%d %H:%M:%S'))
+        self.__etl_log['py_path'] = file_name
+        self.__etl_log['func_name'] = func
+
+    def __end(self):
+        t_end = datetime.datetime.now()
+        t_duration = str((t_end - self.__t_start).seconds)
+        self.__etl_log['end_time'] = str(t_end.strftime('%Y-%m-%d %H:%M:%S'))
+        self.__etl_log['duration'] = t_duration
+        sortd_log = {i: self.__etl_log[i] for i in self.__etl_param_sort if i in self.__etl_log}
+        for k, v in self.__etl_log.items():
+            if k not in sortd_log:
+                sortd_log[k] = v
+        if self.__logger is not None:
+            self.__logger(sortd_log)
+        self.__etl_log = {}
