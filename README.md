@@ -1,17 +1,21 @@
 # PyQueen
 
-## 安装
+![github license](https://img.shields.io/github/license/ts7ming/pyqueen)
+[![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE)
+![Language](https://img.shields.io/badge/language-Python-brightgreen)
+![GitHub Repo stars](https://img.shields.io/github/stars/ts7ming/pyqueen)
 
+PyQueen 是一个简单的数据处理工具箱. 配合 Pandas 使用可以完成简单的ETL作业
+
+## Install
 ```bash
 pip install pyqueen
 ```
 
-## DataSource
-
+## Doc
 #### 读写数据库
-
 - dbtype: 可选 mysql,mssql,oracle,clickhouse,sqlite
-- get_sql/to_db/exe_sql每次都会销毁连接, 无需手动close_conn. 如需手动控制连接 添加: `ds.keep_conn()`
+- 每次操作数据库都会销毁连接, 无需手动close_conn. 如需手动控制连接 添加: `ds.keep_conn()`
   和 `ds.close_conn()`
 - 如需切换 db_name 添加: `ds.set_db(db_name)`
 - 设置字符集 添加: `ds.set_charset(charset)`. 默认: `utf8mb4`
@@ -46,7 +50,6 @@ ds.download_ftp(local_dir='保存目录', remote_dir='远程目录')
 ```
 
 #### 写入Excel文件
-
 - 将 pd.DataFrame对象 写入Excel文件
 - file_path 文件路径 (须以 .xlsx 结尾)
 - sheet_list 待写入数据, 二维列表, 每个 pd.DataFrame对象 对应一个 sheet
@@ -76,25 +79,7 @@ fmt = {
 ds.to_excel(file_path='xxx.xlsx', sheet_list=sheet_list, fmt=fmt)
 ```
 
-## TimeKit
-
-- tk.today: 当前日期或初始化指定日期
-- tk.now: 当前时间或初始化指定时间
-- tk.hour: 当前小时
-- tk.minute: 当前分钟
-- tk.second: 当前秒
-- tk.nday_of_week: 1-7对应周一到周日
-- tk.week_start: 本周一日期
-- tk.lw_start: 上周开始日期
-- tk.lw_end: 上周结束日期
-- tk.lw2_start: 上上周开始日期
-- tk.lw2_end: 上上周结束日期
-- tk.month_start: 本月初
-- tk.lm_start: 上月初
-- tk.lm_end: 上月末
-- tk.lm2_start: 上上月初
-- tk.lm2_end: 上上月末
-
+#### 时间处理工具
 ```python
 from pyqueen import TimeKit
 
@@ -102,6 +87,24 @@ from pyqueen import TimeKit
 tk = TimeKit()
 # 指定日期, 时间
 tk = TimeKit(theday=20200101, thetime=120000)
+
+# 常用属性
+tk.today    # 当前日期或初始化指定日期
+tk.now    # 当前时间或初始化指定时间
+tk.hour    # 当前小时
+tk.minute    # 当前分钟
+tk.second    # 当前秒
+tk.nday_of_week    # 1-7对应周一到周日
+tk.week_start    # 本周一日期
+tk.lw_start    # 上周开始日期
+tk.lw_end    # 上周结束日期
+tk.lw2_start    # 上上周开始日期
+tk.lw2_end    # 上上周结束日期
+tk.month_start    # 本月初
+tk.lm_start    # 上月初
+tk.lm_end    # 上月末
+tk.lm2_start    # 上上月初
+tk.lm2_end    # 上上月末
 
 # 时间加减
 # flag: 加减单位: years,months,days,hours,minutes,seconds
@@ -125,7 +128,6 @@ date_str = tk.int2str(20200101, sep='-')
 ```
 
 #### 发送信息
-
 - 邮件
 - 钉钉
 - 企业微信
@@ -174,7 +176,6 @@ wechat.send(content=None, mentioned_list=None, mentioned_mobile_list=None)
 ```
 
 #### 小工具
-
 ```python
 from pyqueen import Utils
 
