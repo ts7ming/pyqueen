@@ -231,6 +231,5 @@ class DB(object):
                     engine.dispose()
 
     def get_value(self, sql):
-        df = self.get_sql(sql)
-        rows = df.values[0][0]
-        return int(rows)
+        v = self.get_sql(sql).values[0][0]
+        return v

@@ -1,7 +1,6 @@
 import datetime
 
 from pyqueen.etl.excel import Excel
-import inspect
 
 
 class DataSource:
@@ -36,8 +35,22 @@ class DataSource:
             'table_name'
         ]
 
+    @staticmethod
+    def __file_log(etl_log):
+        log_path = etl_log['py_path']
+        log_path = str(log_path).replace('.py', '.log')
+        info = '\n------------------------------------\n'
+        for k, v in etl_log.items():
+            info += '    ' + str(k) + ': ' + str(v) + '\n'
+        info += '\n------------------------------------\n'
+        with open(log_path, 'a+', encoding='utf-8') as f:
+            f.write(info)
+
     def set_logger(self, logger=print):
-        self.__logger = logger
+        if str(logger) == 'file':
+            self.__logger = self.__file_log
+        else:
+            self.__logger = logger
 
     def set_db(self, db_name):
         self.__db_name = db_name
@@ -156,7 +169,8 @@ class DataSource:
         if self.__logger is not None:
             self.__end()
 
-    def to_excel(self, file_path, sheet_list, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11, column_width=17):
+    def to_excel(self, file_path, sheet_list, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11,
+                 column_width=17):
         '''
         DataFrame对象写入Excel文件
         路径不存在时自动创建
