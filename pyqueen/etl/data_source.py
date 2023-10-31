@@ -89,7 +89,7 @@ class DataSource:
             self.__etl_log['port'] = str(self.__port)
             self.__etl_log['db_name'] = self.__db_name
             self.__etl_log['db_type'] = self.__db_type
-        ret = 1  # self.__db.get_sql(sql)
+        ret = self.__db.get_sql(sql)
         if self.__logger is not None:
             self.__end()
         return ret
