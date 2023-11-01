@@ -70,6 +70,12 @@ class DataSource:
             self.__end()
         self.__db.set_charset(charset=charset)
 
+    def set_package(self, package_name):
+        self.__db.set_package(package_name)
+
+    def set_url(self, url):
+        self.__db.set_url(url)
+
     def keep_conn(self):
         self.__db.keep_conn()
 
@@ -133,11 +139,6 @@ class DataSource:
             self.__end()
 
     def exe_sql(self, sql):
-        """
-        执行 SQL
-        :param sql: 待执行 sql
-        :return:
-        """
         if self.__logger is not None:
             self.__start()
             self.__etl_log['sql_text'] = str(sql).strip('\n').strip(' ')
@@ -150,18 +151,9 @@ class DataSource:
             self.__end()
 
     def get_tmp_file(self):
-        """
-        调用系统函数生成临时文件名
-        :return:
-        """
         return self.__db.get_tmp_file()
 
     def delete_file(self, path):
-        """
-        删除文件
-        :param path:
-        :return:
-        """
         if self.__logger is not None:
             self.__start()
             self.__etl_log['file_path'] = path
@@ -169,13 +161,20 @@ class DataSource:
         if self.__logger is not None:
             self.__end()
 
-    def to_excel(self, file_path, sheet_list, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11,
-                 column_width=17):
-        '''
-        DataFrame对象写入Excel文件
-        路径不存在时自动创建
-        :param file_path: 文件路径 (须以 .xlsx结尾)
-        :param sheet_list: list [[dataframe,sheet_name],[dataframe2,sheet_name2]]
+    def to_excel(self,
+                 file_path,
+                 sheet_list,
+                 fillna='',
+                 fmt=None,
+                 font='微软雅黑',
+                 font_color='black',
+                 font_size=11,
+                 column_width=17
+                 ):
+        """
+        DataFrame对象写入Excel文件路径不存在时自动创建
+        file_path: 文件路径 (须以 .xlsx结尾)
+        sheet_list: list [[dataframe,sheet_name],[dataframe2,sheet_name2]]
 
         fmt={
             'col1':'#,##0',
@@ -185,7 +184,7 @@ class DataSource:
             'col5':'YYYY-MM-DD',
             ''
         }
-        '''
+        """
         if self.__logger is not None:
             self.__start()
             self.__etl_log['file_path'] = file_path
@@ -202,12 +201,6 @@ class DataSource:
             self.__end()
 
     def read_excel(self, path, sheet_name=None):
-        """
-        读取excel文件到 DataFrame
-        :param path: 文件路径
-        :param sheet_name: sheet名
-        :return:
-        """
         if self.__logger is not None:
             self.__start()
             self.__etl_log['file_path'] = path
@@ -216,13 +209,6 @@ class DataSource:
             self.__end()
 
     def download_ftp(self, local_dir, remote_dir):
-        """
-        下载ftp文件
-        整个文件夹下载
-        :param local_dir: 本地目录
-        :param remote_dir: 远程目录
-        :return:
-        """
         if self.__logger is not None:
             self.__start()
             self.__etl_log['file_path'] = remote_dir
