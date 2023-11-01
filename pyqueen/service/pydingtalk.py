@@ -9,7 +9,7 @@ class Dingtalk:
     def __init__(self, access_token):
         """
         初始化
-        :param key: 微信机器人key
+        :param key: 钉钉机器人key
         """
         self.url = "https://oapi.dingtalk.com/robot/send?access_token=%s" % str(access_token)
         self.header = {"Content-Type": "application/json"}
@@ -37,9 +37,9 @@ class Dingtalk:
                               data=json.dumps(self.msg),
                               headers=self.header).text)
             if res['errmsg'] != 'ok':
-                raise Exception('微信发送失败')
+                raise Exception('钉钉发送失败')
         except Exception as ee:
-            raise Exception('微信发送失败：%s' % ee)
+            raise Exception('钉钉发送失败：%s' % ee)
 
     def send_image(self, base64, md5):
         """
@@ -58,9 +58,9 @@ class Dingtalk:
                               data=json.dumps(self.msg),
                               headers=self.header).text)
             if res['errmsg'] != 'ok':
-                raise Exception('微信发送失败')
+                raise Exception('钉钉发送失败')
         except Exception as ee:
-            raise Exception('微信发送失败：%s' % ee)
+            raise Exception('钉钉发送失败：%s' % ee)
 
     def send_file(self, file_path):
         """
@@ -92,6 +92,6 @@ class Dingtalk:
                               data=json.dumps(self.msg),
                               headers=self.header).text)
             if res['errmsg'] != 'ok':
-                raise Exception('微信发送失败')
+                raise Exception('钉钉发送失败')
         except Exception as ee:
-            raise Exception('微信发送失败：%s' % ee)
+            raise Exception('钉钉发送失败：%s' % ee)
