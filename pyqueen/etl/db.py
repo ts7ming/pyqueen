@@ -13,17 +13,21 @@ class DB(object):
     """
 
     def __init__(self, host=None, username=None, password=None, port=None, db_name=None, db_type='MySQL'):
-        self.host = host
-        self.db_type = db_type
-        self.chunksize = 10000
+        self.__url = None
+        self.__engine = None
+        self.__conn = None
+        self.__host = host
+        self.__db_type = db_type
+        self.__chunksize = 10000
         self.__operator = None
         self.__keep_conn = 0
-        self.charset = 'utf8mb4'
+        self.__package = None
+        self.__charset = 'utf8mb4'
         if db_type.lower() != 'sqlite' and password is not None:
-            self.username = username
-            self.password = quote_plus(password)
-            self.port = port
-            self.db_name = db_name
+            self.__username = username
+            self.__password = quote_plus(password)
+            self.__port = port
+            self.__db_name = db_name
         self.__db_conn = {
             'host': str(host),
             'username': str(username),
@@ -33,81 +37,57 @@ class DB(object):
         }
 
     def set_db(self, db_name):
-        self.db_name = db_name
+        self.__db_name = db_name
 
     def set_chunksize(self, chunksize):
-        self.chunksize = chunksize
+        self.__chunksize = chunksize
 
     def set_charset(self, charset):
-        self.charset = charset
+        self.__charset = charset
+
+    def set_package(self, package_name):
+        self.__package = package_name
+
+    def set_url(self, url):
+        self.__url = url
 
     def __get_conn(self, load_file=False):
         if load_file:
-            param = '&local_infile=1'
+            load_file = '&local_infile=1'
         else:
-            param = ''
+            load_file = ''
+        base_url = '://{username}:{password}@{host}:{port}/{db_name}'.format(
+            username=self.__username,
+            password=self.__password,
+            host=str(self.__host),
+            port=str(self.__port),
+            db_name=str(self.__db_name)
+        )
         try:
-            if self.db_type.lower() == 'mysql':
-                engine = create_engine(
-                    "mysql+pymysql://{}:{}@{}:{}/{}?charset={}{}".format(
-                        self.username,
-                        self.password,
-                        str(self.host),
-                        str(self.port),
-                        str(self.db_name),
-                        self.charset,
-                        param,
-                    ),
-                    poolclass=NullPool
-                )
-            elif self.db_type.lower() == 'mssql':
-                engine = create_engine(
-                    "mssql+pyodbc://{}:{}@{}:{}/{}?driver=SQL+Server".format(
-                        self.username,
-                        self.password,
-                        str(self.host),
-                        str(self.port),
-                        str(self.db_name)
-                    ),
-                    poolclass=NullPool,
-                    fast_executemany=True
-                )
-            elif self.db_type.lower() == 'oracle':
-                import cx_Oracle
-                engine = create_engine(
-                    "oracle+cx_oracle://{}:{}@{}:{}/{}".format(
-                        self.username,
-                        self.password,
-                        str(self.host),
-                        str(self.port),
-                        str(self.db_name)
-                    ),
-                    poolclass=NullPool
-                )
-            elif self.db_type.lower() == 'clickhouse':
-                engine = create_engine(
-                    "clickhouse+native://{}:{}@{}:{}/{}".format(
-                        self.username,
-                        self.password,
-                        str(self.host),
-                        str(self.port),
-                        str(self.db_name)
-                    ),
-                    poolclass=NullPool
-                )
-            elif self.db_type.lower() == 'clickhouse-http':
-                engine = create_engine(
-                    "clickhouse://{}:{}@{}:{}/{}".format(
-                        self.username,
-                        self.password,
-                        str(self.host),
-                        str(self.port),
-                        str(self.db_name)
-                    ),
-                    poolclass=NullPool
-                )
-            elif self.db_type.lower() == 'sqlite':
-                engine = create_engine('sqlite:///%s' % self.host)
+            if self.__url is not None:
+                url = self.__url
+                engine = create_engine(url, poolclass=NullPool)
+            elif self.__db_type.lower() == 'mysql':
+                url = 'mysql+pymysql' + base_url + '?charset=' + str(self.__charset) + load_file
+                engine = create_engine(url, poolclass=NullPool)
+            elif self.__db_type.lower() == 'mssql':
+                if str(self.__package) == 'pyodbc':
+                    url = 'mssql+pyodbc' + base_url + '?driver=SQL+Server'
+                    engine = create_engine(url, poolclass=NullPool, fast_executemany=True)
+                else:
+                    url = 'mssql+pymssql' + base_url
+                    engine = create_engine(url, poolclass=NullPool)
+            elif self.__db_type.lower() == 'oracle':
+                url = 'oracle+cx_oracle' + base_url
+                engine = create_engine(url, poolclass=NullPool, fast_executemany=True)
+            elif self.__db_type.lower() == 'clickhouse':
+                url = 'clickhouse+native' + base_url
+                engine = create_engine(url, poolclass=NullPool, fast_executemany=True)
+            elif self.__db_type.lower() == 'clickhouse-http':
+                url = 'clickhouse:' + base_url
+                engine = create_engine(url, poolclass=NullPool, fast_executemany=True)
+            elif self.__db_type.lower() == 'sqlite':
+                engine = create_engine('sqlite:///%s' % self.__host)
             else:
                 raise Exception('不支持的数据库类型')
             conn = engine.connect()
@@ -117,12 +97,12 @@ class DB(object):
 
     def keep_conn(self):
         self.__keep_conn = 1
-        self.conn, self.engine = self.__get_conn()
+        self.__conn, self.__engine = self.__get_conn()
 
     def close_conn(self):
         try:
-            self.conn.close()
-            self.engine.dispose()
+            self.__conn.close()
+            self.__engine.dispose()
         except:
             pass
 
@@ -134,7 +114,7 @@ class DB(object):
 
     def get_sql(self, sql):
         if self.__keep_conn == 1:
-            conn, engine = self.conn, self.engine
+            conn, engine = self.__conn, self.__engine
         else:
             conn, engine = self.__get_conn()
         try:
@@ -148,7 +128,7 @@ class DB(object):
         return df
 
     def to_db(self, df, tb_name: str, fast_load: str = False, how: str = 'append'):
-        if fast_load and str(self.db_type).lower() == 'mysql':
+        if fast_load and str(self.__db_type).lower() == 'mysql':
             file = self.get_tmp_file()
             df.to_csv(file, index=False, quoting=1)
             conn, engine = self.__get_conn(load_file=True)
@@ -169,29 +149,29 @@ class DB(object):
                 pass
         else:
             if self.__keep_conn == 1:
-                conn, engine = self.conn, self.engine
+                conn, engine = self.__conn, self.__engine
             else:
                 conn, engine = self.__get_conn()
-            df.to_sql(name=tb_name, con=conn, if_exists=how, index=False, chunksize=self.chunksize)
+            df.to_sql(name=tb_name, con=conn, if_exists=how, index=False, chunksize=self.__chunksize)
             if self.__keep_conn == 0:
                 conn.close()
                 engine.dispose()
 
     def exe_sql(self, sql):
         if self.__keep_conn == 1:
-            conn, engine = self.conn, self.engine
+            conn, engine = self.__conn, self.__engine
         else:
             conn, engine = self.__get_conn()
 
-        if self.db_type.lower() == 'mysql':
+        if self.__db_type.lower() == 'mysql':
             from pymysql.constants import CLIENT
             import pymysql
             conn_pymysql = pymysql.Connection(
-                host=self.host,
-                port=int(self.port),
-                user=self.username,
-                password=self.password,
-                database=self.db_name,
+                host=self.__host,
+                port=int(self.__port),
+                user=self.__username,
+                password=self.__password,
+                database=self.__db_name,
                 charset='utf8',
                 client_flag=CLIENT.MULTI_STATEMENTS
             )
