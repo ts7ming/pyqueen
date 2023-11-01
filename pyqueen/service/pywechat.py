@@ -6,6 +6,7 @@ import os
 import hashlib
 import base64
 
+
 class Wechat:
     """
     发送微信
@@ -55,7 +56,8 @@ class Wechat:
             raise Exception('微信发送失败：%s' % ee)
         if self.__operator is not None:
             try:
-                self.__operator({'content': content, 'mentioned_list': mentioned_list, 'func': 'pykoala.Wechat.send_text'})
+                self.__operator(
+                    {'content': content, 'mentioned_list': mentioned_list, 'func': 'pykoala.Wechat.send_text'})
             except:
                 pass
 

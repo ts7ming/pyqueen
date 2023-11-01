@@ -1,6 +1,3 @@
-import requests
-
-
 class Showdoc:
     def __init__(self, username, password, host):
         self.username = username
@@ -8,6 +5,7 @@ class Showdoc:
         self.host = host
 
     def post(self, title, concat, cat_name=None):
+        import requests
         data = {
             'api_key': self.username,
             'api_token': self.password,
