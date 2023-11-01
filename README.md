@@ -25,6 +25,11 @@ pip install pyqueen
 - 如需切换 db_name 添加: `ds.set_db(db_name)`
 - 设置字符集 添加: `ds.set_charset(charset)`. 默认: `utf8mb4`
 - 设置 chunksize 添加 `ds.set_chunksize(1000)`. 默认: `10000`
+- 数据库连接支持
+  - mysql: `pip install pymysql`
+  - mssql: `pip install pymssql` 可选 `pip install pyodbc` 指定 `ds.set_package('pyodbc')`
+  - oracle: `pip install cx_oracle`
+  - clickhouse: `pip install clickhouse-driver`
 
 ```python
 from pyqueen import DataSource
