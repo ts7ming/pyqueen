@@ -241,3 +241,12 @@ class DataSource:
         if self.__logger is not None:
             self.__logger(sortd_log)
         self.__etl_log = {}
+
+    @staticmethod
+    def pdsql(sql, data):
+        import duckdb
+        with duckdb.connect() as conn:
+            for df_name, df in data.items():
+                conn.register(df_name, df)
+            result = conn.execute(sql).df()
+        return result
