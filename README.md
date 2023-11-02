@@ -48,7 +48,24 @@ ds.to_db(df=df_to_write, tb_name='')
 
 # 执行sql
 ds.exe_sql(sql='delete from table')
+
+# 使用SQL语法查询 pd.DataFrame 数据 (功能依赖duckdb包); 可以部分代替 pandas接口 
+data = {'table1': df_fact, 'table2': df_dim1, 'table3': df_dim2}
+sql = '''
+  select b.d1_name,c.d2_name,sum(a.value) as sum_value
+  from table1 a 
+  inner join table2 b on a.d1 = b.d1
+  inner join table3 c on a.d2 = c.d2
+  group by b.d1_name,c.d2_name
+'''
+ds.pdsql(sql=sql, data=data)
+
+# 等价python
+df_fact = pd.merge(df_fact, df_dim1, on='d1', how='inner')
+df_fact = pd.merge(df_fact, df_dim1, on='d2', how='inner')
+df_summary = df_fact.groupby(['d1_name','d2_name']).agg({'value':np.sum}).reset_index().rename('value':'sum_value')
 ```
+
 
 #### 下载FTP文件
 
