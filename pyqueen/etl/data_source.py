@@ -1,5 +1,7 @@
 import datetime
 
+import pandas as pd
+
 from pyqueen.etl.excel import Excel
 
 
@@ -35,6 +37,15 @@ class DataSource:
             'table_name'
         ]
 
+    def import_test_data(self, excel_path):
+        from pyqueen.etl.db import DB
+        self.__db = DB(host=':memory:', db_name='main', db_type='sqlite')
+        self.__db.keep_conn()
+        data = pd.read_excel(excel_path, sheet_name=None)
+        for sht_name, df in data.items():
+            self.__db.to_db(df, sht_name)
+
+
     @staticmethod
     def __file_log(etl_log):
         log_path = etl_log['py_path']
@@ -54,7 +65,8 @@ class DataSource:
 
     def set_db(self, db_name):
         self.__db_name = db_name
-        self.__db.set_db(db_name=db_name)
+        if self.__db_type != 'sqlite':
+            self.__db.set_db(db_name=db_name)
 
     def set_chunksize(self, chunksize):
         if self.__logger is not None:

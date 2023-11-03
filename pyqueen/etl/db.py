@@ -17,17 +17,19 @@ class DB(object):
         self.__engine = None
         self.__conn = None
         self.__host = host
+        self.__username = username
+        self.__port = port
+        self.__db_name = db_name
+        if password is not None:
+            self.__password = quote_plus(password)
+        else:
+            self.__password = None
         self.__db_type = db_type
         self.__chunksize = 10000
         self.__operator = None
         self.__keep_conn = 0
         self.__package = None
         self.__charset = 'utf8mb4'
-        if db_type.lower() != 'sqlite' and password is not None:
-            self.__username = username
-            self.__password = quote_plus(password)
-            self.__port = port
-            self.__db_name = db_name
         self.__db_conn = {
             'host': str(host),
             'username': str(username),
@@ -57,8 +59,8 @@ class DB(object):
         else:
             load_file = ''
         base_url = '://{username}:{password}@{host}:{port}/{db_name}'.format(
-            username=self.__username,
-            password=self.__password,
+            username=str(self.__username),
+            password=str(self.__password),
             host=str(self.__host),
             port=str(self.__port),
             db_name=str(self.__db_name)

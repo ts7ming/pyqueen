@@ -20,14 +20,15 @@ pip install pyqueen
 
 #### 读写数据库
 - dbtype: 可选 mysql,mssql,oracle,clickhouse,sqlite
-- 每次操作数据库都会销毁连接, 无需手动close_conn. 如需手动控制连接 添加: `ds.keep_conn()`
-  和 `ds.close_conn()`
-- 如需切换 db_name 添加: `ds.set_db(db_name)`
-- 设置字符集 添加: `ds.set_charset(charset)`. 默认: `utf8mb4`
-- 设置 chunksize 添加 `ds.set_chunksize(1000)`. 默认: `10000`
+- 每次操作数据库都会销毁连接, 无需关注连接池情况
+  - 如需主动控制连接 使用: `ds.keep_conn()` 和 `ds.close_conn()`
+- 如需切换 db_name 使用: `ds.set_db(db_name)`
+- 设置字符集 使用: `ds.set_charset(charset)`. 默认: `utf8mb4`
+- 设置 chunksize 使用 `ds.set_chunksize(1000)`. 默认: `10000`
 - 数据库连接支持
   - mysql: `pip install pymysql`
-  - mssql: `pip install pymssql` 可选 `pip install pyodbc` 指定 `ds.set_package('pyodbc')`
+  - mssql: `pip install pymssql` 
+    - 可选 `pip install pyodbc` 需指定 `ds.set_package('pyodbc')`
   - oracle: `pip install cx_oracle`
   - clickhouse: `pip install clickhouse-driver`
 
@@ -60,10 +61,15 @@ sql = '''
 '''
 ds.pdsql(sql=sql, data=data)
 
-# 等价python
+### 等价python
 df_fact = pd.merge(df_fact, df_dim1, on='d1', how='inner')
 df_fact = pd.merge(df_fact, df_dim1, on='d2', how='inner')
 df_summary = df_fact.groupby(['d1_name','d2_name']).agg({'value':np.sum}).reset_index().rename('value':'sum_value')
+
+# 导入测试数据
+## 会将excel文件里的每一个sheet映射成一张表, 将这个 ds 后续的sql查询都转移到这个由excel文件生成的新数据库
+## 用于测试确认复杂计算逻辑, 相当于用excel文件代替测试数据库
+ds.import_test_data(excel_path='')
 ```
 
 
