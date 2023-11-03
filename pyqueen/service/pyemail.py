@@ -21,7 +21,6 @@ class Email:
         self.password = password
         self.host = host
         self.port = port
-        self.__operator = None
 
     def __conn(self):
         try:
@@ -29,9 +28,6 @@ class Email:
             self.smtp.login(user=self.username, password=self.password)
         except Exception as ee:
             raise Exception('邮箱登录失败：%s' % ee)
-
-    def set_operator(self, func):
-        self.__operator = func
 
     def send_text(self,
                   subject,
@@ -63,12 +59,6 @@ class Email:
             self.smtp.send_message(msg, from_addr=self.username)
         except Exception as ee:
             raise Exception('邮件发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator({'subject': subject, 'content': content, 'to_user': to_user, 'cc_user': cc_user,
-                                 'func': 'pykoala.Email.send_text'})
-            except:
-                pass
 
     def send_file(self,
                   subject,
@@ -112,10 +102,3 @@ class Email:
             self.smtp.send_message(msg, from_addr=self.username)
         except Exception as ee:
             raise Exception('邮件发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator({'subject': subject, 'content': content, 'to_user': to_user, 'cc_user': cc_user,
-                                 'file_path_list': file_path_list,
-                                 'func': 'pykoala.Email.send_file'})
-            except:
-                pass

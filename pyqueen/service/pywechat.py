@@ -21,10 +21,6 @@ class Wechat:
         self.url = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=%s" % key
         self.header = {"Content-Type": "application/json"}
         self.msg = {}
-        self.__operator = None
-
-    def set_operator(self, func):
-        self.__operator = func
 
     def send_text(self,
                   content,
@@ -54,12 +50,6 @@ class Wechat:
                 raise Exception('微信发送失败')
         except Exception as ee:
             raise Exception('微信发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator(
-                    {'content': content, 'mentioned_list': mentioned_list, 'func': 'pykoala.Wechat.send_text'})
-            except:
-                pass
 
     def send_markdown(self, content):
         """
@@ -79,11 +69,6 @@ class Wechat:
                 raise Exception('微信发送失败')
         except Exception as ee:
             raise Exception('微信发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator({'content': content, 'func': 'pykoala.Wechat.send_markdown'})
-            except:
-                pass
 
     def send(self, content=None, mentioned_list=None, mentioned_mobile_lis=None, file_path=None, img_path=None):
         if content is not None:
@@ -123,11 +108,6 @@ class Wechat:
                 raise Exception('微信发送失败')
         except Exception as ee:
             raise Exception('微信发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator({'func': 'pykoala.Wechat.send_image'})
-            except:
-                pass
 
     def send_file(self, file_path):
         """
@@ -162,8 +142,3 @@ class Wechat:
                 raise Exception('微信发送失败')
         except Exception as ee:
             raise Exception('微信发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator({'file_path': file_path, 'func': 'pykoala.Wechat.send_file'})
-            except:
-                pass
