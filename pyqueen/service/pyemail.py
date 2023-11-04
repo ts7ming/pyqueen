@@ -32,9 +32,9 @@ class Email:
     def send_text(self,
                   subject,
                   content,
-                  to_user,
-                  cc_user=None,
-                  bcc_user=None,
+                  to_user: list,
+                  cc_user: list = None,
+                  bcc_user: list = None,
                   type='plain'):
         """
         发送文本邮件
@@ -63,10 +63,10 @@ class Email:
     def send_file(self,
                   subject,
                   content,
-                  file_path_list,
-                  to_user,
-                  cc_user=None,
-                  bcc_user=None,
+                  file_path_list: list,
+                  to_user: list,
+                  cc_user: list = None,
+                  bcc_user: list = None,
                   type='plain'):
         """
         发送附件邮件
@@ -92,6 +92,7 @@ class Email:
             text_msg = MIMEText(content, _subtype=type, _charset='utf-8')
             msg.attach(text_msg)
             for file_path in file_path_list:
+                file_path = str(file_path).replace('\\', '/')
                 file_content = open(file_path, 'rb').read()
                 file_msg = MIMEApplication(file_content)
                 file_msg.add_header('content-disposition',

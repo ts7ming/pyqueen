@@ -116,6 +116,7 @@ class Wechat:
         :return:
         """
         try:
+            file_path = str(file_path).replace('\\', '/')
             upload_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?key=%s&type=file' % self.key
             file_name = file_path.split("/")[-1]
             with open(file_path, 'rb') as f:
