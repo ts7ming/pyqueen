@@ -21,7 +21,6 @@ class Email:
         self.password = password
         self.host = host
         self.port = port
-        self.__operator = None
 
     def __conn(self):
         try:
@@ -30,15 +29,12 @@ class Email:
         except Exception as ee:
             raise Exception('邮箱登录失败：%s' % ee)
 
-    def set_operator(self, func):
-        self.__operator = func
-
     def send_text(self,
                   subject,
                   content,
-                  to_user,
-                  cc_user=None,
-                  bcc_user=None,
+                  to_user: list,
+                  cc_user: list = None,
+                  bcc_user: list = None,
                   type='plain'):
         """
         发送文本邮件
@@ -63,19 +59,14 @@ class Email:
             self.smtp.send_message(msg, from_addr=self.username)
         except Exception as ee:
             raise Exception('邮件发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator({'subject': subject, 'content': content, 'to_user': to_user, 'cc_user': cc_user, 'func': 'pykoala.Email.send_text'})
-            except:
-                pass
 
     def send_file(self,
                   subject,
                   content,
-                  file_path_list,
-                  to_user,
-                  cc_user=None,
-                  bcc_user=None,
+                  file_path_list: list,
+                  to_user: list,
+                  cc_user: list = None,
+                  bcc_user: list = None,
                   type='plain'):
         """
         发送附件邮件
@@ -101,6 +92,7 @@ class Email:
             text_msg = MIMEText(content, _subtype=type, _charset='utf-8')
             msg.attach(text_msg)
             for file_path in file_path_list:
+                file_path = str(file_path).replace('\\', '/')
                 file_content = open(file_path, 'rb').read()
                 file_msg = MIMEApplication(file_content)
                 file_msg.add_header('content-disposition',
@@ -111,9 +103,3 @@ class Email:
             self.smtp.send_message(msg, from_addr=self.username)
         except Exception as ee:
             raise Exception('邮件发送失败：%s' % ee)
-        if self.__operator is not None:
-            try:
-                self.__operator({'subject': subject, 'content': content, 'to_user': to_user, 'cc_user': cc_user, 'file_path_list': file_path_list,
-                                 'func': 'pykoala.Email.send_file'})
-            except:
-                pass
