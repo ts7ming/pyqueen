@@ -249,4 +249,8 @@ Utils.delete_file(path='')
 Utils.md5(text='')
 # 列表按n个一组拆分
 Utils.div_list(listTemp=[1, 2, 3], n=2)
+# 用正则从sql里提取用到的表
+### kw: (可选)指定匹配关键词
+### strip: (可选)指定需要清除的字符
+Utils.sql2table(sql_text='', kw=None,strip=None)
 ```
