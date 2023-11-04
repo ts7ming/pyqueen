@@ -20,11 +20,17 @@ pip install pyqueen
 
 #### 读写数据库
 - dbtype: 可选 mysql,mssql,oracle,clickhouse,sqlite
-- 每次操作数据库都会销毁连接, 无需手动close_conn. 如需手动控制连接 添加: `ds.keep_conn()`
-  和 `ds.close_conn()`
-- 如需切换 db_name 添加: `ds.set_db(db_name)`
-- 设置字符集 添加: `ds.set_charset(charset)`. 默认: `utf8mb4`
-- 设置 chunksize 添加 `ds.set_chunksize(1000)`. 默认: `10000`
+- 每次操作数据库都会销毁连接, 无需关注连接池情况
+  - 如需主动控制连接 使用: `ds.keep_conn()` 和 `ds.close_conn()`
+- 如需切换 db_name 使用: `ds.set_db(db_name)`
+- 设置字符集 使用: `ds.set_charset(charset)`. 默认: `utf8mb4`
+- 设置 chunksize 使用 `ds.set_chunksize(1000)`. 默认: `10000`
+- 数据库连接支持
+  - mysql: `pip install pymysql`
+  - mssql: `pip install pymssql` 
+    - 可选 `pip install pyodbc` 需指定 `ds.set_package('pyodbc')`
+  - oracle: `pip install cx_oracle`
+  - clickhouse: `pip install clickhouse-driver`
 
 ```python
 from pyqueen import DataSource
@@ -44,6 +50,35 @@ ds.to_db(df=df_to_write, tb_name='')
 # 执行sql
 ds.exe_sql(sql='delete from table')
 ```
+
+#### ETL辅助功能
+```python
+# 使用SQL语法查询 pd.DataFrame 数据 (功能依赖duckdb包); 可以部分代替 pandas接口 
+### 等价python
+df_fact = pd.merge(df_fact, df_dim1, on='d1', how='inner')
+df_fact = pd.merge(df_fact, df_dim1, on='d2', how='inner')
+df_summary = df_fact.groupby(['d1_name','d2_name']).agg({'value':np.sum}).reset_index().rename('value':'sum_value')
+
+### 可以用sql实现
+from pyqueen import DataSource
+ds = DataSource()
+data = {'table1': df_fact, 'table2': df_dim1, 'table3': df_dim2}
+sql = '''
+  select b.d1_name,c.d2_name,sum(a.value) as sum_value
+  from table1 a 
+  inner join table2 b on a.d1 = b.d1
+  inner join table3 c on a.d2 = c.d2
+  group by b.d1_name,c.d2_name
+'''
+df_summary = ds.pdsql(sql=sql, data=data)
+
+
+# 导入测试数据
+### 会将excel文件里的每一个sheet映射成一张表, 将这个 ds 后续的sql查询都转移到这个由excel文件生成的新数据库
+### 用于测试确认复杂计算逻辑, 相当于用excel文件代替测试数据库
+ds.import_test_data(excel_path='')
+```
+
 
 #### 下载FTP文件
 
@@ -214,4 +249,8 @@ Utils.delete_file(path='')
 Utils.md5(text='')
 # 列表按n个一组拆分
 Utils.div_list(listTemp=[1, 2, 3], n=2)
+# 用正则从sql里提取用到的表
+### kw: (可选)指定匹配关键词
+### strip: (可选)指定需要清除的字符
+Utils.sql2table(sql_text='', kw=None,strip=None)
 ```

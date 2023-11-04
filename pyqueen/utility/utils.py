@@ -1,5 +1,6 @@
 import os
 import hashlib
+import re
 
 
 class Utils:
@@ -70,3 +71,26 @@ class Utils:
                 zip_file.close()
         except Exception as ee:
             raise Exception('压缩失败：%s' % ee)
+
+    @staticmethod
+    def sql2table(sql_text, kw=None, strip=None):
+        if kw is None:
+            kw = ['from', 'join', 'truncate table', 'into', 'delete from', 'update']
+        if strip is None:
+            strip = [' ', '[', ']', '.', '(', ')', '\n', '`']
+        table_list = []
+        for mf in kw:
+            p = mf + '\s+[0-9a-zA-Z_\[\]\.]+[\s\(]+'
+            if re.findall(p, sql_text, re.IGNORECASE) is None:
+                continue
+            for tmp in re.findall(p, sql_text, re.IGNORECASE):
+                tmp = tmp.lower().replace(mf, '')
+                for r in strip:
+                    tmp = tmp.replace(r, '')
+                if len(tmp) == 0:
+                    continue
+                if tmp[0] == '#' or tmp[0:1] == '--':
+                    continue
+                if tmp not in table_list:
+                    table_list.append(tmp)
+        return table_list
