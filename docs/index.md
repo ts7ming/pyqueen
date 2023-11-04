@@ -49,8 +49,19 @@ ds.to_db(df=df_to_write, tb_name='')
 
 # 执行sql
 ds.exe_sql(sql='delete from table')
+```
 
+#### ETL辅助功能
+```python
 # 使用SQL语法查询 pd.DataFrame 数据 (功能依赖duckdb包); 可以部分代替 pandas接口 
+### 等价python
+df_fact = pd.merge(df_fact, df_dim1, on='d1', how='inner')
+df_fact = pd.merge(df_fact, df_dim1, on='d2', how='inner')
+df_summary = df_fact.groupby(['d1_name','d2_name']).agg({'value':np.sum}).reset_index().rename('value':'sum_value')
+
+### 可以用sql实现
+from pyqueen import DataSource
+ds = DataSource()
 data = {'table1': df_fact, 'table2': df_dim1, 'table3': df_dim2}
 sql = '''
   select b.d1_name,c.d2_name,sum(a.value) as sum_value
@@ -59,16 +70,12 @@ sql = '''
   inner join table3 c on a.d2 = c.d2
   group by b.d1_name,c.d2_name
 '''
-ds.pdsql(sql=sql, data=data)
+df_summary = ds.pdsql(sql=sql, data=data)
 
-### 等价python
-df_fact = pd.merge(df_fact, df_dim1, on='d1', how='inner')
-df_fact = pd.merge(df_fact, df_dim1, on='d2', how='inner')
-df_summary = df_fact.groupby(['d1_name','d2_name']).agg({'value':np.sum}).reset_index().rename('value':'sum_value')
 
 # 导入测试数据
-## 会将excel文件里的每一个sheet映射成一张表, 将这个 ds 后续的sql查询都转移到这个由excel文件生成的新数据库
-## 用于测试确认复杂计算逻辑, 相当于用excel文件代替测试数据库
+### 会将excel文件里的每一个sheet映射成一张表, 将这个 ds 后续的sql查询都转移到这个由excel文件生成的新数据库
+### 用于测试确认复杂计算逻辑, 相当于用excel文件代替测试数据库
 ds.import_test_data(excel_path='')
 ```
 
