@@ -32,8 +32,8 @@ class Image:
         if col_width == 'auto':
             tmp_list = [max(len(str(a)), len(str(b))) for a, b in
                         zip(list(df.head(1).to_records()[0])[1:], list(df.columns))]
-            colWidths = [x / sum(tmp_list) for x in tmp_list]
-            dtable = ax.table(cellText=df.values, colLabels=df.columns, colWidths=colWidths)
+            new_col_width = [x / sum(tmp_list) for x in tmp_list]
+            dtable = ax.table(cellText=df.values, colLabels=df.columns, colWidths=new_col_width)
         elif col_width != 'auto' and col_width is not None:
             dtable = ax.table(cellText=df.values, colLabels=df.columns, colWidths=col_width)
         else:
@@ -41,5 +41,5 @@ class Image:
         if font_size is not None:
             dtable.auto_set_font_size(False)
             dtable.set_fontsize(font_size)
-        plt.savefig(file_path, dpi=600)
+        plt.savefig(file_path, dpi=600, bbox_inches='tight')
         return file_path

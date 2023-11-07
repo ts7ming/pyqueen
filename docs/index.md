@@ -49,6 +49,12 @@ ds.to_db(df=df_to_write, tb_name='')
 
 # 执行sql
 ds.exe_sql(sql='delete from table')
+
+# pd.DataFrame 转图片
+### 可以指定文件路径: file_path. 默认生成临时文件
+### 可以用列表为每一列指定宽度 col_width
+### 指定字体大小 font_size
+path = ds.to_image(df, file_path=None, col_width=None, font_size=None)
 ```
 
 #### ETL辅助功能
