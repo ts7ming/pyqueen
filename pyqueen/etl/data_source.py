@@ -45,7 +45,6 @@ class DataSource:
         for sht_name, df in data.items():
             self.__db.to_db(df, sht_name)
 
-
     @staticmethod
     def __file_log(etl_log):
         log_path = etl_log['py_path']
@@ -262,3 +261,9 @@ class DataSource:
                 conn.register(df_name, df)
             result = conn.execute(sql).df()
         return result
+
+    @staticmethod
+    def to_image(df, file_path=None, col_width=None, font_size=None):
+        from pyqueen.etl.image import Image
+        path = Image.df2image(df, file_path=file_path, col_width=col_width, font_size=font_size)
+        return path
