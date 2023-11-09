@@ -1,5 +1,4 @@
 import sys
-from optparse import OptionParser
 from pyqueen.utility.utils import Utils
 
 doc = '''
