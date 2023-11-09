@@ -110,16 +110,16 @@ class TimeKit:
     @classmethod
     def get_month_on_day(self, the_day):
         """ 获取指定日期月份 """
-        month_start = int(str(the_day)[0:6]+'01')
-        month_end = self.time_delta(self.time_delta(month_start,'months',1),'days',-1)
+        month_start = int(str(the_day)[0:6] + '01')
+        month_end = self.time_delta(self.time_delta(month_start, 'months', 1), 'days', -1)
         return month_start, month_end
 
     @classmethod
     def get_week_on_day(self, the_day):
         """ 获取指定日期周 """
-        n = self.get_nday_of_week(the_day) -1
-        week_start = self.time_delta(the_day,'days', -n)
-        week_end = self.time_delta(week_start,'days',6)
+        n = self.get_nday_of_week(the_day) - 1
+        week_start = self.time_delta(the_day, 'days', -n)
+        week_end = self.time_delta(week_start, 'days', 6)
         return week_start, week_end
 
     @classmethod
@@ -178,11 +178,11 @@ class TimeKit:
             return None
 
     @classmethod
-    def date_div(self, start, end, num,by='groups'):
+    def date_div(self, start, end, num, by='groups'):
         """ 指定分段数 拆分时间段 """
-        if by=='ndays':
-            step=num
-        elif by=='groups':
+        if by == 'ndays':
+            step = num
+        elif by == 'groups':
             d_len = self.get_day_num(start, end)
             step = int(d_len / num)
         else:
@@ -200,7 +200,7 @@ class TimeKit:
 
     @staticmethod
     def get_nweek_of_year(week_start):
-        week_start=str(week_start)
+        week_start = str(week_start)
         thetime_obj = datetime.date(int(week_start[0:4]), int(week_start[4:6]), int(week_start[6:8]))
         return thetime_obj.isocalendar()[1]
 
