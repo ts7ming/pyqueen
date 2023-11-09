@@ -260,3 +260,14 @@ Utils.div_list(listTemp=[1, 2, 3], n=2)
 ### strip: (可选)指定需要清除的字符
 Utils.sql2table(sql_text='', kw=None,strip=None)
 ```
+
+#### 命令行
+```commandline
+用法: pyqueen command args1,args2,...
+---
+command: 
+    #1  sql2table [file_path] 从sql解析用到的表(通过正则解析, 有误差) (不带参数时读取剪切板)
+    
+    #2  getcode file_path: 检测文件编码
+```
+
