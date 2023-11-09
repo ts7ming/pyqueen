@@ -94,3 +94,13 @@ class Utils:
                 if tmp not in table_list:
                     table_list.append(tmp)
         return table_list
+
+    @staticmethod
+    def detect_encoding(file_path):
+        import chardet
+        with open(file_path, 'rb') as file:
+            data = file.read()
+            result = chardet.detect(data)
+            encoding = result['encoding']
+            confidence = result['confidence']
+        return encoding, confidence
