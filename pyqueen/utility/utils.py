@@ -106,22 +106,31 @@ class Utils:
         return encoding, confidence
 
     @staticmethod
-    def exec(q, func, args):
+    def exec(q, func, index, args):
         result = func(args)
-        q.put(result)
+        q.put([index, result])
 
     @staticmethod
-    def mult_run(func, args_list):
+    def mult_run(func, args_list, max_process=1):
         import multiprocessing
-        job_list = []
         q = multiprocessing.Queue()
-        for args in args_list:
-            p = multiprocessing.Process(target=Utils.exec, args=(q, func, args))
-            p.start()
-            job_list.append(p)
-        for job in job_list:
-            job.join()
+        args_list_with_index = []
+        i = 0
+        for t in args_list:
+            args_list_with_index.append([i, t])
+            i += 1
+        task_list = Utils.div_list(args_list_with_index, max_process)
+        for sub_args_list in task_list:
+            job_list = []
+            for index, args in sub_args_list:
+                p = multiprocessing.Process(target=Utils.exec, args=(q, func, index, args))
+                p.start()
+                job_list.append(p)
+            for job in job_list:
+                job.join()
         result = []
         for _ in range(q.qsize()):
             result.append(q.get())
+        sorted(result, key=(lambda x: x[0]))
+        result = [x[1] for x in result]
         return result
