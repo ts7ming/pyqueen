@@ -104,3 +104,24 @@ class Utils:
             encoding = result['encoding']
             confidence = result['confidence']
         return encoding, confidence
+
+    @staticmethod
+    def exec(q, func, args):
+        result = func(args)
+        q.put(result)
+
+    @staticmethod
+    def mult_run(func, args_list):
+        import multiprocessing
+        job_list = []
+        q = multiprocessing.Queue()
+        for args in args_list:
+            p = multiprocessing.Process(target=Utils.exec, args=(q, func, args))
+            p.start()
+            job_list.append(p)
+        for job in job_list:
+            job.join()
+        result = []
+        for _ in range(q.qsize()):
+            result.append(q.get())
+        return result
