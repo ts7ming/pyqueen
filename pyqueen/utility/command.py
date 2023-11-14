@@ -14,7 +14,9 @@ doc = '''
 command: 
     #1  sql2table [file_path] 从sql解析用到的表(通过正则解析, 有误差) (不带参数时读取剪切板)
     
-    #2  getcode file_path: 检测文件编码
+    #2  getcode file_path 检测文件编码
+    
+    #3 md5 基于剪切板文本生成md5
 '''
 
 
@@ -43,3 +45,9 @@ def cmd():
             print('\n================= end =========================\n')
         else:
             print('指定文件路径')
+    elif parms[0] == 'md5':
+        import pyperclip
+        text = str(pyperclip.paste()).replace('\n', '').strip(' ')
+        print('================= begin =========================\n')
+        print(Utils.md5(text))
+        print('\n================= end =========================\n')
