@@ -1,4 +1,5 @@
 # PyQueen
+
 ![](logo.jpg)
 
 ![github license](https://img.shields.io/github/license/ts7ming/pyqueen)
@@ -6,31 +7,35 @@
 ![Language](https://img.shields.io/badge/language-Python-brightgreen)
 [![Documentation Status](https://readthedocs.org/projects/pyqueen/badge/?version=latest)](https://pyqueen.readthedocs.io/zh-cn/latest/?badge=latest)
 ![GitHub Repo stars](https://img.shields.io/github/stars/ts7ming/pyqueen)
+[![PyPI downloads](https://img.shields.io/pypi/dm/pyqueen.svg)](https://pypistats.org/packages/pyqueen)
 
-PyQueen 是一个简单的数据处理工具箱. 配合 Pandas 使用可以完成简单的ETL作业
+PyQueen 是一个数据处理工具箱. 配合 Pandas 使用可以完成简单的ETL作业
 
 ## Install
+
 ```bash
 pip install pyqueen
 ```
 
 ## Doc
+
 - [readthedocs](https://pyqueen.readthedocs.io/zh-cn/latest/)
 - 示例: example/*
 
 #### 读写数据库
+
 - dbtype: 可选 mysql,mssql,oracle,clickhouse,sqlite
 - 每次操作数据库都会销毁连接, 无需关注连接池情况
-  - 如需主动控制连接 使用: `ds.keep_conn()` 和 `ds.close_conn()`
+    - 如需主动控制连接 使用: `ds.keep_conn()` 和 `ds.close_conn()`
 - 如需切换 db_name 使用: `ds.set_db(db_name)`
 - 设置字符集 使用: `ds.set_charset(charset)`. 默认: `utf8mb4`
 - 设置 chunksize 使用 `ds.set_chunksize(1000)`. 默认: `10000`
 - 数据库连接支持
-  - mysql: `pip install pymysql`
-  - mssql: `pip install pymssql` 
-    - 可选 `pip install pyodbc` 需指定 `ds.set_package('pyodbc')`
-  - oracle: `pip install cx_oracle`
-  - clickhouse: `pip install clickhouse-driver`
+    - mysql: `pip install pymysql`
+    - mssql: `pip install pymssql`
+        - 可选 `pip install pyodbc` 需指定 `ds.set_package('pyodbc')`
+    - oracle: `pip install cx_oracle`
+    - clickhouse: `pip install clickhouse-driver`
 
 ```python
 from pyqueen import DataSource
@@ -58,15 +63,17 @@ path = ds.to_image(df, file_path=None, col_width=None, font_size=None)
 ```
 
 #### ETL辅助功能
+
 ```python
 # 使用SQL语法查询 pd.DataFrame 数据 (功能依赖duckdb包); 可以部分代替 pandas接口 
 ### 等价python
 df_fact = pd.merge(df_fact, df_dim1, on='d1', how='inner')
 df_fact = pd.merge(df_fact, df_dim1, on='d2', how='inner')
-df_summary = df_fact.groupby(['d1_name','d2_name']).agg({'value':np.sum}).reset_index().rename('value':'sum_value')
+df_summary = df_fact.groupby(['d1_name', 'd2_name']).agg({'value': np.sum}).reset_index().rename('value':'sum_value')
 
 ### 可以用sql实现
 from pyqueen import DataSource
+
 ds = DataSource()
 data = {'table1': df_fact, 'table2': df_dim1, 'table3': df_dim2}
 sql = '''
@@ -78,13 +85,11 @@ sql = '''
 '''
 df_summary = ds.pdsql(sql=sql, data=data)
 
-
 # 导入测试数据
 ### 会将excel文件里的每一个sheet映射成一张表, 将这个 ds 后续的sql查询都转移到这个由excel文件生成的新数据库
 ### 用于测试确认复杂计算逻辑, 相当于用excel文件代替测试数据库
 ds.import_test_data(excel_path='')
 ```
-
 
 #### 下载FTP文件
 
@@ -96,6 +101,7 @@ ds.download_ftp(local_dir='保存目录', remote_dir='远程目录')
 ```
 
 #### 写入Excel文件
+
 - 将 pd.DataFrame对象 写入Excel文件
 - file_path 文件路径 (须以 .xlsx 结尾)
 - sheet_list 待写入数据, 二维列表, 每个 pd.DataFrame对象 对应一个 sheet
@@ -126,6 +132,7 @@ ds.to_excel(file_path='xxx.xlsx', sheet_list=sheet_list, fmt=fmt)
 ```
 
 #### 时间处理工具
+
 ```python
 from pyqueen import TimeKit
 
@@ -135,22 +142,22 @@ tk = TimeKit()
 tk = TimeKit(theday=20200101, thetime=120000)
 
 # 常用属性
-tk.today    # 当前日期或初始化指定日期
-tk.now    # 当前时间或初始化指定时间
-tk.hour    # 当前小时
-tk.minute    # 当前分钟
-tk.second    # 当前秒
-tk.nday_of_week    # 1-7对应周一到周日
-tk.week_start    # 本周一日期
-tk.lw_start    # 上周开始日期
-tk.lw_end    # 上周结束日期
-tk.lw2_start    # 上上周开始日期
-tk.lw2_end    # 上上周结束日期
-tk.month_start    # 本月初
-tk.lm_start    # 上月初
-tk.lm_end    # 上月末
-tk.lm2_start    # 上上月初
-tk.lm2_end    # 上上月末
+tk.today  # 当前日期或初始化指定日期
+tk.now  # 当前时间或初始化指定时间
+tk.hour  # 当前小时
+tk.minute  # 当前分钟
+tk.second  # 当前秒
+tk.nday_of_week  # 1-7对应周一到周日
+tk.week_start  # 本周一日期
+tk.lw_start  # 上周开始日期
+tk.lw_end  # 上周结束日期
+tk.lw2_start  # 上上周开始日期
+tk.lw2_end  # 上上周结束日期
+tk.month_start  # 本月初
+tk.lm_start  # 上月初
+tk.lm_end  # 上月末
+tk.lm2_start  # 上上月初
+tk.lm2_end  # 上上月末
 
 # 时间加减
 # flag: 加减单位: years,months,days,hours,minutes,seconds
@@ -174,6 +181,7 @@ date_str = tk.int2str(20200101, sep='-')
 ```
 
 #### ETL日志
+
 - 记录所有 `DataSource` 类函数的调用过程和相应参数
 - 如需启用日志, 添加: `ds.set_logger(logger)`
 - 其中 `logger` 为日志处理函数, 默认为: `print`
@@ -194,6 +202,7 @@ date_str = tk.int2str(20200101, sep='-')
     - table_name: (如有) 表名
 
 #### 发送信息
+
 - 邮件
 - 钉钉
 - 企业微信
@@ -242,6 +251,7 @@ wechat.send(content=None, mentioned_list=None, mentioned_mobile_list=None)
 ```
 
 #### 小工具
+
 ```python
 from pyqueen import Utils
 
@@ -268,6 +278,7 @@ result = Utils.mult_run(func, args_list=[], max_process=1)
 ```
 
 #### 命令行
+
 ```commandline
 用法: pyqueen command args1,args2,...
 ---
