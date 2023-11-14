@@ -258,7 +258,13 @@ Utils.div_list(listTemp=[1, 2, 3], n=2)
 # 用正则从sql里提取用到的表
 ### kw: (可选)指定匹配关键词
 ### strip: (可选)指定需要清除的字符
-Utils.sql2table(sql_text='', kw=None,strip=None)
+Utils.sql2table(sql_text='', kw=None, strip=None)
+# 多进程执行
+### func: 待执行函数
+### args_list: 每个子任务的参数
+### max_process = 1: 最大进程数, 默认为 1
+### 以list返回每个子进程执行结果, 和 args_list 顺序一致
+result = Utils.mult_run(func, args_list=[], max_process=1)
 ```
 
 #### 命令行
@@ -269,5 +275,7 @@ command:
     #1  sql2table [file_path] 从sql解析用到的表(通过正则解析, 有误差) (不带参数时读取剪切板)
     
     #2  getcode file_path: 检测文件编码
+    
+    #3 md5 基于剪切板文本生成md5
 ```
 
