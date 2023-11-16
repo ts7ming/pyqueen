@@ -14,9 +14,9 @@ doc = '''
 command: 
     #1  sql2table [file_path] 从sql解析用到的表(通过正则解析, 有误差) (不带参数时读取剪切板)
     
-    #2  getcode file_path 检测文件编码
+    #2  detcode file_path 检测文件编码
     
-    #3 md5 基于剪切板文本生成md5
+    #3  md5 基于剪切板文本生成md5
 '''
 
 
@@ -37,10 +37,11 @@ def cmd():
         for tb in tb_list:
             print(tb)
         print('\n================= end =========================\n')
-    elif parms[0] == 'getcode':
+    elif parms[0] == 'detcode':
         if len(parms) >= 2:
             print('================= begin =========================\n')
             encoding, confidence = Utils.detect_encoding(parms[1])
+            confidence = str(int(confidence * 100))+'%'
             print('文件编码: %s, 可信度: %s' % (str(encoding), str(confidence)))
             print('\n================= end =========================\n')
         else:
@@ -49,5 +50,6 @@ def cmd():
         import pyperclip
         text = str(pyperclip.paste()).replace('\n', '').strip(' ')
         print('================= begin =========================\n')
+        print('输入文本: "%s"\n' % text)
         print(Utils.md5(text))
         print('\n================= end =========================\n')
