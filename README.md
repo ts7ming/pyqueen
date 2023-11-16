@@ -285,8 +285,8 @@ result = Utils.mult_run(func, args_list=[], max_process=1)
 command: 
     #1  sql2table [file_path] 从sql解析用到的表(通过正则解析, 有误差) (不带参数时读取剪切板)
     
-    #2  getcode file_path: 检测文件编码
+    #2  detcode file_path: 检测文件编码
     
-    #3 md5 基于剪切板文本生成md5
+    #3  md5 基于剪切板文本生成md5
 ```
 
