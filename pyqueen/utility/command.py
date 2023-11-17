@@ -1,5 +1,6 @@
 import sys
 from pyqueen.utility.utils import Utils
+from pyqueen.utility.chat import pq_chat
 
 doc = '''
   ____         ___                        
@@ -41,7 +42,7 @@ def cmd():
         if len(parms) >= 2:
             print('================= begin =========================\n')
             encoding, confidence = Utils.detect_encoding(parms[1])
-            confidence = str(int(confidence * 100))+'%'
+            confidence = str(int(confidence * 100)) + '%'
             print('文件编码: %s, 可信度: %s' % (str(encoding), str(confidence)))
             print('\n================= end =========================\n')
         else:
@@ -53,3 +54,5 @@ def cmd():
         print('输入文本: "%s"\n' % text)
         print(Utils.md5(text))
         print('\n================= end =========================\n')
+    elif parms[0] == 'chat':
+        pq_chat()
