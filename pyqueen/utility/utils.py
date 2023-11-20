@@ -134,3 +134,18 @@ class Utils:
         sorted(result, key=(lambda x: x[0]))
         result = [x[1] for x in result]
         return result
+
+    @staticmethod
+    def sub_run(func, *args):
+        import multiprocessing
+        p = multiprocessing.Process(target=func, args=args)
+        p.start()
+
+def show_msg(sec, msg):
+    import win32api, win32con
+    print(33333)
+    win32api.MessageBox(0, msg, 'PyQueen', win32con.MB_OK)
+
+
+# Utils.sub_run(show_msg,1,'hlhlhl')
+
