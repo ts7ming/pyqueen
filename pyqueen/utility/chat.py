@@ -20,6 +20,3 @@ def pq_chat():
             param = str(msg).split(' ')[2:]
             print(param)
             print(func(*param))
-
-
-pq_chat()
