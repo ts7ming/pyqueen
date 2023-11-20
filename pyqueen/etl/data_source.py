@@ -49,7 +49,7 @@ class DataSource:
         log_path = str(log_path).replace('.py', '.log')
         info = '\n------------------------------------\n'
         for k, v in etl_log.items():
-            info += '    ' + str(k) + ': ' + str(v) + '\n'
+            info += str(k) + ': ' + str(v) + '\n'
         info += '\n------------------------------------\n'
         with open(log_path, 'a+', encoding='utf-8') as f:
             f.write(info)
