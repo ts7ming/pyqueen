@@ -1,6 +1,5 @@
 import sys
 from pyqueen.utility.utils import Utils
-from pyqueen.utility.chat import pq_chat
 
 doc = '''
   ____         ___                        
@@ -54,5 +53,3 @@ def cmd():
         print('输入文本: "%s"\n' % text)
         print(Utils.md5(text))
         print('\n================= end =========================\n')
-    elif parms[0] == 'chat':
-        pq_chat()
