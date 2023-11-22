@@ -1,12 +1,12 @@
 import datetime
 import pandas as pd
-from pyqueen.etl.excel import Excel
+from pyqueen.io.excel import Excel
 
 
 class DataSource:
     def __init__(self, host=None, username=None, password=None, port=None, db_name=None, db_type='MySQL'):
         if str(db_type).lower() in ('mysql', 'mssql', 'oracle', 'clickhouse', 'sqlite'):
-            from pyqueen.etl.db import DB
+            from pyqueen.io.db import DB
             self.__db = DB(host=host, username=username, password=password, port=port, db_name=db_name, db_type=db_type)
         if str(db_type).lower() == 'ftp':
             from ftp import FTP
@@ -36,7 +36,7 @@ class DataSource:
         ]
 
     def import_test_data(self, excel_path):
-        from pyqueen.etl.db import DB
+        from pyqueen.io.db import DB
         self.__db = DB(host=':memory:', db_name='main', db_type='sqlite')
         self.__db.keep_conn()
         data = pd.read_excel(excel_path, sheet_name=None)
@@ -262,6 +262,6 @@ class DataSource:
 
     @staticmethod
     def to_image(df, file_path=None, col_width=None, font_size=None):
-        from pyqueen.etl.image import Image
+        from pyqueen.io.image import Image
         path = Image.df2image(df, file_path=file_path, col_width=col_width, font_size=font_size)
         return path
