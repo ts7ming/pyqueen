@@ -62,6 +62,16 @@ ds.exe_sql(sql='delete from table')
 path = ds.to_image(df, file_path=None, col_width=None, font_size=None)
 ```
 
+#### 常用模型
+
+```python
+from pyqueen import Model
+
+data = df['待预测列']  # 也可以是 list形式的数据
+### forecast_step: 预测节点数
+### p,d,q: 自定义arima模型参数. 为空时自动使用最优模型
+forecast_result = Model.arima(data, forecast_step=10, p=None, d=None, q=None)
+```
 #### ETL辅助功能
 
 ```python
@@ -285,8 +295,8 @@ result = Utils.mult_run(func, args_list=[], max_process=1)
 command: 
     #1  sql2table [file_path] 从sql解析用到的表(通过正则解析, 有误差) (不带参数时读取剪切板)
     
-    #2  getcode file_path: 检测文件编码
+    #2  detcode file_path: 检测文件编码
     
-    #3 md5 基于剪切板文本生成md5
+    #3  md5 基于剪切板文本生成md5
 ```
 

@@ -62,6 +62,16 @@ ds.exe_sql(sql='delete from table')
 path = ds.to_image(df, file_path=None, col_width=None, font_size=None)
 ```
 
+#### 常用模型
+
+```python
+from pyqueen import Model
+
+data = df['待预测列']  # 也可以是 list形式的数据
+### forecast_step: 预测节点数
+### p,d,q: 自定义arima模型参数. 为空时自动使用最优模型
+forecast_result = Model.arima(data, forecast_step=10, p=None, d=None, q=None)
+```
 #### ETL辅助功能
 
 ```python
