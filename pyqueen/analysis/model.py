@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 
@@ -16,3 +17,12 @@ class Model:
             model_fit = model.fit(data)
         forecast = model_fit.predict(n_periods=forecast_step).tolist()[-1 * forecast_step:]
         return forecast
+
+    @staticmethod
+    def kmeans(data, n_clusters=None):
+        if isinstance(data, np.ndarray) is False:
+            data = np.array(data)
+        from sklearn.cluster import KMeans
+        kmeans = KMeans(n_clusters=3)
+        kmeans.fit(data)
+        return kmeans
