@@ -60,6 +60,14 @@ ds.exe_sql(sql='delete from table')
 ### 可以用列表为每一列指定宽度 col_width
 ### 指定字体大小 font_size
 path = ds.to_image(df, file_path=None, col_width=None, font_size=None)
+
+# 下载网页文本
+### `set_cache_dir` 的作用是缓存网页html到 `cache_dir`, 下次访问直接从本地加载, 避免频繁请求页面
+ds.set_cache_dir(cache_dir=None)
+page = ds.get_web(url='')
+### 去除html字符, 只保留文本 (保留页面所有文本, 如需精确筛选需要自行解析html)
+from pyqueen import Utils
+text = Utils.html2text(html)
 ```
 
 #### 常用模型
@@ -285,6 +293,9 @@ Utils.sql2table(sql_text='', kw=None, strip=None)
 ### max_process = 1: 最大进程数, 默认为 1
 ### 以list返回每个子进程执行结果, 和 args_list 顺序一致
 result = Utils.mult_run(func, args_list=[], max_process=1)
+# html转文本
+### 去除html字符, 只保留文本
+text = Utils.html2text(html)
 ```
 
 #### 命令行
