@@ -94,3 +94,50 @@ class Utils:
                 if tmp not in table_list:
                     table_list.append(tmp)
         return table_list
+
+    @staticmethod
+    def detect_encoding(file_path):
+        import chardet
+        with open(file_path, 'rb') as file:
+            data = file.read()
+            result = chardet.detect(data)
+            encoding = result['encoding']
+            confidence = result['confidence']
+        return encoding, confidence
+
+    @staticmethod
+    def exec(q, func, index, args):
+        result = func(args)
+        q.put([index, result])
+
+    @staticmethod
+    def mult_run(func, args_list, max_process=1):
+        import multiprocessing
+        q = multiprocessing.Queue()
+        args_list_with_index = []
+        i = 0
+        for t in args_list:
+            args_list_with_index.append([i, t])
+            i += 1
+        task_list = Utils.div_list(args_list_with_index, max_process)
+        for sub_args_list in task_list:
+            job_list = []
+            for index, args in sub_args_list:
+                p = multiprocessing.Process(target=Utils.exec, args=(q, func, index, args))
+                p.start()
+                job_list.append(p)
+            for job in job_list:
+                job.join()
+        result = []
+        for _ in range(q.qsize()):
+            result.append(q.get())
+        sorted(result, key=(lambda x: x[0]))
+        result = [x[1] for x in result]
+        return result
+
+    @staticmethod
+    def html2text(html):
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html, 'html.parser')
+        text = soup.get_text()
+        return text
