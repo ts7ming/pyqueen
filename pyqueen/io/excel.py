@@ -3,6 +3,7 @@ import numpy as np
 import xlsxwriter
 import os
 
+
 class Excel:
     @staticmethod
     def read_excel(path, sheet_name=None):
@@ -10,7 +11,8 @@ class Excel:
         return df
 
     @staticmethod
-    def to_excel(file_path, sheet_list, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11,column_width=17):
+    def to_excel(file_path, sheet_list, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11,
+                 column_width=17):
         if str(file_path)[-5:] != '.xlsx':
             raise Exception('文件路径必须 .xlsx 结尾')
         if os.path.exists(os.path.dirname(file_path)) is False:
