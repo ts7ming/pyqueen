@@ -19,6 +19,7 @@ class DataSource:
         self.__db_name = db_name
         self.__db_type = db_type
         self.__etl_log = {}
+        self.__cache_dir = None
         self.__etl_param_sort = [
             'py_path',
             'func_name',
@@ -81,6 +82,9 @@ class DataSource:
 
     def set_package(self, package_name):
         self.__db.set_package(package_name)
+
+    def set_cache_dir(self, cache_dir):
+        self.__cache_dir = cache_dir
 
     def set_url(self, url):
         self.__db.set_url(url)
@@ -265,3 +269,8 @@ class DataSource:
         from pyqueen.io.image import Image
         path = Image.df2image(df, file_path=file_path, col_width=col_width, font_size=font_size)
         return path
+
+    def get_web(self, url):
+        from pyqueen.io.web import Web
+        w = Web(cache_dir=self.__cache_dir)
+        return w.read_page(url)
