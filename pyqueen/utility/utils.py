@@ -134,3 +134,10 @@ class Utils:
         sorted(result, key=(lambda x: x[0]))
         result = [x[1] for x in result]
         return result
+
+    @staticmethod
+    def html2text(html):
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html, 'html.parser')
+        text = soup.get_text()
+        return text
