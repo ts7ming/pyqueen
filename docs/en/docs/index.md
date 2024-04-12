@@ -12,8 +12,8 @@
 PyQueen is a data development toolkit that can build ETL workflows
 
 ## Doc
-
-- [中文文档](index.md)
+- [Document](https://pyqueen.readthedocs.io/en/latest/)
+- [中文文档](https://pyqueen.readthedocs.io/zh-cn/latest/)
 
 ## Install
 
