@@ -9,20 +9,20 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/ts7ming/pyqueen)
 [![PyPI downloads](https://img.shields.io/pypi/dm/pyqueen.svg)](https://pypistats.org/packages/pyqueen)
 
-PyQueen 是一个数据处理工具箱. 配合 Pandas 使用可以完成简单的ETL作业
+PyQueen 是一个数据处理工具箱, 用于构建ETL工作流.
 
-## Install
+## 文档
+
+- [Document](index_en.md)
+
+
+## 安装
 
 ```bash
 pip install pyqueen
 ```
 
-## Doc
-
-- [readthedocs](https://pyqueen.readthedocs.io/zh-cn/latest/)
-- 示例: example/*
-
-#### 读写数据库
+## 读写数据库
 
 - dbtype: 可选 mysql,mssql,oracle,clickhouse,sqlite
 - 每次操作数据库都会销毁连接, 无需关注连接池情况
@@ -70,7 +70,7 @@ from pyqueen import Utils
 text = Utils.html2text(html)
 ```
 
-#### 常用模型
+## 常用模型
 
 ```python
 from pyqueen import Model
@@ -80,7 +80,7 @@ data = df['待预测列']  # 也可以是 list形式的数据
 ### p,d,q: 自定义arima模型参数. 为空时自动使用最优模型
 forecast_result = Model.arima(data, forecast_step=10, p=None, d=None, q=None)
 ```
-#### ETL辅助功能
+## ETL辅助功能
 
 ```python
 # 使用SQL语法查询 pd.DataFrame 数据 (功能依赖duckdb包); 可以部分代替 pandas接口 
@@ -109,7 +109,7 @@ df_summary = ds.pdsql(sql=sql, data=data)
 ds.import_test_data(excel_path='')
 ```
 
-#### 下载FTP文件
+## 下载FTP文件
 
 ```python
 from pyqueen import DataSource
@@ -118,7 +118,23 @@ ds = DataSource(host='', username='', password='', port='', db_type='ftp')
 ds.download_ftp(local_dir='保存目录', remote_dir='远程目录')
 ```
 
-#### 写入Excel文件
+## 图表
+
+```python
+import pandas as pd
+from pyqueen import Chart
+
+df = pd.DataFrame()
+
+# 折线图/柱状图/散点图/气泡图
+# img_path 不为None时保存图片, show为False时静默运行不弹出图片窗口
+Chart.line(x=df['x_col'], y=df['y_col'], x_label='', y_label='', img_path='demo.png', show=True)
+Chart.bar(x=df['x_col'], y=df['y_col'], x_label='', y_label='', img_path='demo.png', show=True)
+Chart.scatter(x=df['x_col'], y=df['y_col'], x_label='', y_label='', img_path='demo.png', show=True)
+Chart.bubble(x=df['x_col'], y=df['y_col'], v=df['value_col'], c=df['color'], x_label='', y_label='',img_path='demo.png', show=True)
+```
+
+## 写入Excel文件
 
 - 将 pd.DataFrame对象 写入Excel文件
 - file_path 文件路径 (须以 .xlsx 结尾)
@@ -149,7 +165,7 @@ fmt = {
 ds.to_excel(file_path='xxx.xlsx', sheet_list=sheet_list, fmt=fmt)
 ```
 
-#### 时间处理工具
+## 时间处理工具
 
 ```python
 from pyqueen import TimeKit
@@ -198,7 +214,7 @@ n = tk.get_nday_of_week(20200101)
 date_str = tk.int2str(20200101, sep='-')
 ```
 
-#### ETL日志
+## ETL日志
 
 - 记录所有 `DataSource` 类函数的调用过程和相应参数
 - 如需启用日志, 添加: `ds.set_logger(logger)`
@@ -219,7 +235,7 @@ date_str = tk.int2str(20200101, sep='-')
     - db_name: (如有) 数据库名
     - table_name: (如有) 表名
 
-#### 发送信息
+## 发送信息
 
 - 邮件
 - 钉钉
@@ -260,15 +276,15 @@ wechat.send(content=None, mentioned_list=None, mentioned_mobile_lis=None, file_p
 from pyqueen import Dingtalk
 
 # 初始化
-wechat = Dingtalk(access_token='')
+dingtalk = Dingtalk(access_token='')
 
 # content不为None时,发送文本
 # mentioned_list: userid的列表，提醒群中的指定成员(@某个成员)，@all表示提醒所有人
 # mentioned_mobile_list: 手机号列表，提醒手机号对应的群成员(@某个成员)，@all表示提醒所有人
-wechat.send(content=None, mentioned_list=None, mentioned_mobile_list=None)
+dingtalk.send(content=None, mentioned_list=None, mentioned_mobile_list=None)
 ```
 
-#### 小工具
+## 小工具
 
 ```python
 from pyqueen import Utils
@@ -298,7 +314,7 @@ result = Utils.mult_run(func, args_list=[], max_process=1)
 text = Utils.html2text(html)
 ```
 
-#### 命令行
+## 命令行
 
 ```commandline
 用法: pyqueen command args1,args2,...
