@@ -117,6 +117,22 @@ ds = DataSource(host='', username='', password='', port='', db_type='ftp')
 ds.download_ftp(local_dir='保存目录', remote_dir='远程目录')
 ```
 
+#### 图表
+
+```python
+import pandas as pd
+from pyqueen import Chart
+
+df = pd.DataFrame()
+
+# 折线图/柱状图/散点图/气泡图
+# img_path 不为None时保存图片, show为False时静默运行不弹出图片窗口
+Chart.line(x=df['x_col'], y=df['y_col'], x_label='', y_label='', img_path='demo.png', show=True)
+Chart.bar(x=df['x_col'], y=df['y_col'], x_label='', y_label='', img_path='demo.png', show=True)
+Chart.scatter(x=df['x_col'], y=df['y_col'], x_label='', y_label='', img_path='demo.png', show=True)
+Chart.bubble(x=df['x_col'], y=df['y_col'], v=df['value_col'], c=df['color'], x_label='', y_label='',img_path='demo.png', show=True)
+```
+
 #### 写入Excel文件
 
 - 将 pd.DataFrame对象 写入Excel文件
