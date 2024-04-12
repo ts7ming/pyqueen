@@ -1,0 +1,4 @@
+site_name: PyQueen - Rule your Data
+theme:
+  name: readthedocs
+  highlightjs: true

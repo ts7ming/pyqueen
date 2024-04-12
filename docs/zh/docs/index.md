@@ -12,9 +12,8 @@
 PyQueen 是一个数据处理工具箱, 用于构建ETL工作流.
 
 ## 文档
-
-- [Document](index_en.md)
-
+- [Document](https://pyqueen.readthedocs.io/en/latest/)
+- [中文文档](https://pyqueen.readthedocs.io/zh-cn/latest/)
 
 ## 安装
 
