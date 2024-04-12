@@ -7,3 +7,4 @@ from pyqueen.service.showdoc import Showdoc
 from pyqueen.utility.time_kit import TimeKit
 from pyqueen.utility.utils import Utils
 from pyqueen.utility.command import cmd
+from pyqueen.chart.plot import Chart
