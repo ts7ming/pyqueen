@@ -13,8 +13,9 @@ PyQueen is a data development toolkit that can build ETL workflows
 [中文文档](README_CN.MD)
 
 ## Doc
+
 - [readthedocs](https://pyqueen.readthedocs.io/en/latest/)
-- [中文版](README_CN.md)
+- [中文版](README_ZH.md)
 
 ## Install
 
@@ -26,7 +27,7 @@ pip install pyqueen
 
 - dbtype: mysql,mssql,oracle,clickhouse,sqlite
 - connection will be destroyed after operation. no need to pay attention to the connection pool
-  - if you need keep connection, use `ds.keep_conn()` and `ds.close_conn()`
+    - if you need keep connection, use `ds.keep_conn()` and `ds.close_conn()`
 - use `ds.set_db(db_name)` to change database
 - use `ds.set_charset(charset)` to change charset. default `utf8mb4`
 - use `ds.set_chunksize(1000)` to change chunksize. default `10000`
@@ -70,6 +71,7 @@ page = ds.get_web(url='')
 
 ### get text content
 from pyqueen import Utils
+
 text = Utils.html2text(html)
 ```
 
@@ -83,7 +85,8 @@ data = df['to_forecast_col']  # alse support list
 ### p,d,q: params for arima. auto generate by default
 forecast_result = Model.arima(data, forecast_step=10, p=None, d=None, q=None)
 ```
-#### Other ETL Function 
+
+#### Other ETL Function
 
 ```python
 # SQL on pd.DataFrame (depend on duckdb)
@@ -114,6 +117,20 @@ from pyqueen import DataSource
 
 ds = DataSource(host='', username='', password='', port='', db_type='ftp')
 ds.download_ftp(local_dir='', remote_dir='')
+```
+
+#### Chart
+
+```python
+import pandas as pd
+from pyqueen import Chart
+
+df = pd.DataFrame()
+
+Chart.line(x=df['x_col'], y=df['y_col'], x_label='', y_label='', img_path='demo.png', show=True)
+Chart.bar(x=df['x_col'], y=df['y_col'], x_label='', y_label='', img_path='demo.png', show=True)
+Chart.scatter(x=df['x_col'], y=df['y_col'], x_label='', y_label='', img_path='demo.png', show=True)
+Chart.bubble(x=df['x_col'], y=df['y_col'], v=df['value_col'], c=df['color'], x_label='', y_label='',img_path='demo.png', show=True)
 ```
 
 #### Save Excel file
@@ -158,7 +175,7 @@ tk.hour
 tk.minute
 tk.second
 tk.nday_of_week
-tk.week_start 
+tk.week_start
 tk.lw_start
 tk.lw_end
 tk.lw2_start
@@ -192,8 +209,8 @@ date_str = tk.int2str(20200101, sep='-')
 #### ETL Log
 
 - use `ds.set_logger(logger)` to open log
-  - function `logger`, default: `print`
-  - user-defined logger reference `example/etl_with_log.py`
+    - function `logger`, default: `print`
+    - user-defined logger reference `example/etl_with_log.py`
 - `etl_log` **key**
     - py_path: python script path
     - func_name: function name
@@ -254,17 +271,13 @@ Utils.unzip(from_path='', to_path='')
 
 Utils.delete_file(path='')
 
-
 Utils.md5(text='')
-
 
 Utils.div_list(listTemp=[1, 2, 3], n=2)
 
 Utils.sql2table(sql_text='', kw=None, strip=None)
 
-
 result = Utils.mult_run(func, args_list=[], max_process=1)
-
 
 text = Utils.html2text(html)
 ```
