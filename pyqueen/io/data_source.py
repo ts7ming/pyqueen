@@ -5,7 +5,7 @@ from pyqueen.io.excel import Excel
 
 class DataSource:
     def __init__(self, host=None, username=None, password=None, port=None, db_name=None, db_type='MySQL'):
-        if str(db_type).lower() in ('mysql', 'mssql', 'oracle', 'clickhouse', 'sqlite'):
+        if str(db_type).lower() in ('mysql', 'mssql', 'oracle', 'clickhouse', 'sqlite', 'postgresql', 'pgsql'):
             from pyqueen.io.db import DB
             self.__db = DB(host=host, username=username, password=password, port=port, db_name=db_name, db_type=db_type)
         if str(db_type).lower() == 'ftp':
@@ -274,3 +274,24 @@ class DataSource:
         from pyqueen.io.web import Web
         w = Web(cache_dir=self.__cache_dir)
         return w.read_page(url)
+
+
+
+ds = DataSource(
+    host='localhost',
+    port='5432',
+    username='postgres',
+    password='54maqiming',
+    db_name='dev_local_3_mc',
+    db_type='pgsql'
+)
+
+df = pd.DataFrame({'c1':[1,2,3,4],'c2':['re','gg','hhh','jjj']})
+#
+ds.to_db(df, 'thisistable')
+
+sql = 'select * from t_ais_entity_cfg_ref'
+print(ds.get_sql(sql))
+
+sql = 'select * from thisistable'
+print(ds.get_sql(sql))
