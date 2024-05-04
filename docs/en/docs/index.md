@@ -23,7 +23,7 @@ pip install pyqueen
 
 ## Databases and IO
 
-- dbtype: mysql,mssql,oracle,clickhouse,sqlite
+- dbtype: mysql,mssql,oracle,clickhouse,sqlite,postgresql(or pgsql)
 - connection will be destroyed after operation. no need to pay attention to the connection pool
     - if you need keep connection, use `ds.keep_conn()` and `ds.close_conn()`
 - use `ds.set_db(db_name)` to change database
@@ -35,6 +35,7 @@ pip install pyqueen
         - or `pip install pyodbc` with `ds.set_package('pyodbc')`
     - oracle: `pip install cx_oracle`
     - clickhouse: `pip install clickhouse-driver`
+    - postgresql: `pip install psycopg2`
 
 ```python
 from pyqueen import DataSource
