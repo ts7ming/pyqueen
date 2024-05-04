@@ -5,7 +5,7 @@ from pyqueen.io.excel import Excel
 
 class DataSource:
     def __init__(self, host=None, username=None, password=None, port=None, db_name=None, db_type='MySQL'):
-        if str(db_type).lower() in ('mysql', 'mssql', 'oracle', 'clickhouse', 'sqlite'):
+        if str(db_type).lower() in ('mysql', 'mssql', 'oracle', 'clickhouse', 'sqlite', 'postgresql', 'pgsql'):
             from pyqueen.io.db import DB
             self.__db = DB(host=host, username=username, password=password, port=port, db_name=db_name, db_type=db_type)
         if str(db_type).lower() == 'ftp':
