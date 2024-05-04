@@ -274,24 +274,3 @@ class DataSource:
         from pyqueen.io.web import Web
         w = Web(cache_dir=self.__cache_dir)
         return w.read_page(url)
-
-
-
-ds = DataSource(
-    host='localhost',
-    port='5432',
-    username='postgres',
-    password='54maqiming',
-    db_name='dev_local_3_mc',
-    db_type='pgsql'
-)
-
-df = pd.DataFrame({'c1':[1,2,3,4],'c2':['re','gg','hhh','jjj']})
-#
-ds.to_db(df, 'thisistable')
-
-sql = 'select * from t_ais_entity_cfg_ref'
-print(ds.get_sql(sql))
-
-sql = 'select * from thisistable'
-print(ds.get_sql(sql))
