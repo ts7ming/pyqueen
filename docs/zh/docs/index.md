@@ -35,6 +35,7 @@ pip install pyqueen
         - 可选 `pip install pyodbc` 需指定 `ds.set_package('pyodbc')`
     - oracle: `pip install cx_oracle`
     - clickhouse: `pip install clickhouse-driver`
+    - postgresql: `pip install psycopg2`
 
 ```python
 from pyqueen import DataSource

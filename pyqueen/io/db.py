@@ -72,6 +72,9 @@ class DB(object):
             elif self.__db_type.lower() == 'mysql':
                 url = 'mysql+pymysql' + base_url + '?charset=' + str(self.__charset) + load_file
                 engine = create_engine(url, poolclass=NullPool)
+            elif self.__db_type.lower() == 'pgsql' or self.__db_type.lower() == 'postgresql':
+                url = 'postgresql+psycopg2' + base_url
+                engine = create_engine(url, poolclass=NullPool)
             elif self.__db_type.lower() == 'mssql':
                 if str(self.__package) == 'pyodbc':
                     url = 'mssql+pyodbc' + base_url + '?driver=SQL+Server'
