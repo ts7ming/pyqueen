@@ -23,7 +23,7 @@ pip install pyqueen
 
 ## 读写数据库
 
-- dbtype: 可选 mysql,mssql,oracle,clickhouse,sqlite
+- dbtype: 可选 mysql,mssql,oracle,clickhouse,sqlite,postgresql(或 pgsql)
 - 每次操作数据库都会销毁连接, 无需关注连接池情况
     - 如需主动控制连接 使用: `ds.keep_conn()` 和 `ds.close_conn()`
 - 如需切换 db_name 使用: `ds.set_db(db_name)`
@@ -194,10 +194,16 @@ tk.lm2_start  # 上上月初
 tk.lm2_end  # 上上月末
 
 # 时间加减
-# flag: 加减单位: years,months,days,hours,minutes,seconds
+# flag: 加减单位: years,months,days,hours,minutes,seconds 或者 ,月,日,时,分,秒
 # value: 加减值
 # thetime之前 value 写负值
 # thetime之后 value 写正值
+
+## 按当前时间
+## 如果需要长时期时间 (14位int) 指定 short=False. 默认为 True
+new_day = tk.delta('days', -30)
+
+## 按任意日期
 new_day = tk.time_delta('20230101', 'days', -30)
 
 # 获取日期列表
