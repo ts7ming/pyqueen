@@ -60,19 +60,19 @@ class TimeKit:
                                             int(ts[12:14]))
         else:
             raise Exception('wrong date time')
-        if flag == 'days':
+        if flag == 'days' or flag == '日':
             new_date = thetime_obj + relativedelta(days=value)
-        elif flag == 'weeks':
+        elif flag == 'weeks' or flag == '周':
             new_date = thetime_obj + relativedelta(weeks=value)
-        elif flag == 'months':
+        elif flag == 'months' or flag == '月':
             new_date = thetime_obj + relativedelta(months=value)
-        elif flag == 'years':
+        elif flag == 'years' or flag == '年':
             new_date = thetime_obj + relativedelta(years=value)
-        elif flag == 'hours':
+        elif flag == 'hours' or flag == '时':
             new_date = thetime_obj + relativedelta(hours=value)
-        elif flag == 'minutes':
+        elif flag == 'minutes' or flag == '分':
             new_date = thetime_obj + relativedelta(minutes=value)
-        elif flag == 'seconds':
+        elif flag == 'seconds' or flag == '秒':
             new_date = thetime_obj + relativedelta(seconds=value)
         else:
             print('error date flag  :' + str(flag))
@@ -84,6 +84,16 @@ class TimeKit:
             return str(new_date.strftime('%H%M%S'))
         elif len(ts) == 14:
             return int(new_date.strftime('%Y%m%d%H%M%S'))
+
+    def delta(self, flag, value, short=True):
+        """
+        日期加减
+        """
+        new_time = self.time_delta(self.now, flag, value)
+        if short:
+            return int(str(new_time)[0:8])
+        else:
+            return new_time
 
     @classmethod
     def get_day_list(self, start, end):
