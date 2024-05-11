@@ -7,6 +7,7 @@
 ![Language](https://img.shields.io/badge/language-Python-brightgreen)
 [![Documentation Status](https://readthedocs.org/projects/pyqueen/badge/?version=latest)](https://pyqueen.readthedocs.io/zh-cn/latest/?badge=latest)
 ![GitHub Repo stars](https://img.shields.io/github/stars/ts7ming/pyqueen)
+![GitHub forks](https://img.shields.io/github/forks/ts7ming/pyqueen)
 [![PyPI downloads](https://img.shields.io/pypi/dm/pyqueen.svg)](https://pypistats.org/packages/pyqueen)
 
 PyQueen 是一个数据处理工具箱, 用于构建ETL工作流.
@@ -194,7 +195,7 @@ tk.lm2_start  # 上上月初
 tk.lm2_end  # 上上月末
 
 # 时间加减
-# flag: 加减单位: years,months,days,hours,minutes,seconds 或者 ,月,日,时,分,秒
+# flag: 加减单位: years,months,days,hours,minutes,seconds 或者 年,月,日,时,分,秒
 # value: 加减值
 # thetime之前 value 写负值
 # thetime之后 value 写正值
