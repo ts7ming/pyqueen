@@ -186,10 +186,15 @@ tk.lm2_start
 tk.lm2_end
 
 # time delta
-# flag: years,months,days,hours,minutes,seconds
+# flag: years,months,days,hours,minutes,seconds or 年,月,日,时,分,秒
 # value
+
+## by tk.now or tk.today
+## if need long datetime: short=False. default True
+new_day = tk.delta('days', -30, short=True)
+
+## by specified time
 new_day = tk.time_delta('20230101', 'days', -30)
-new_day = tk.time_delta('20230101', 'days', 30)
 
 # get days list
 day_list = tk.get_day_list(20200101, 20200201)
