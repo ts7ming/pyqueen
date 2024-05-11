@@ -9,7 +9,7 @@ class DataSource:
             from pyqueen.io.db import DB
             self.__db = DB(host=host, username=username, password=password, port=port, db_name=db_name, db_type=db_type)
         if str(db_type).lower() == 'ftp':
-            from ftp import FTP
+            from pyqueen.io.ftp import FTP
             self.__ftp = FTP(username=username, password=password, host=host, port=port)
         self.__excel = Excel()
         self.__logger = None
