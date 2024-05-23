@@ -5,7 +5,8 @@ import pandas as pd
 
 
 class SqlDB:
-    def __init__(self, conn_package=None, db_type=None, host=None, username=None, password=None, port=None, db_name=None, url=None):
+    def __init__(self, conn_package=None, db_type=None, host=None, username=None, password=None, port=None, db_name=None, jdbc_url=None,
+                 keep_conn=False):
         self.__conn = None
         self.__engine = None
         self.__base_param = {
@@ -17,8 +18,9 @@ class SqlDB:
             'port': str(port),
             'db_name': str(db_name),
         }
-        self.__url = url
+        self.__url = jdbc_url
         self.__ext_param = None
+        self.__keep_conn = keep_conn
 
     def set_ext_param(self, **kwargs):
         self.__url = None
@@ -27,26 +29,28 @@ class SqlDB:
             self.__ext_param[k] = v
 
     def create_conn(self):
-        if self.__url is None:
-            self.__url = '{db_type}+{package}://{username}:{password}@{host}:{port}/{db_name}'
-            self.__url = self.__url.format(**self.__base_param)
-            not_first_param = False
-            if self.__ext_param is not None and len(self.__ext_param.keys()) > 0:
-                self.__url = self.__url + '?'
-                for pk, pv in self.__ext_param.items():
-                    if not_first_param:
-                        pk = '&' + pk
-                    self.__url = self.__url + pk + '=' + pv
-                    not_first_param = True
-        self.__engine = create_engine(self.__url)
-        self.__conn = self.__engine.connect()
+        if self.__keep_conn is False or self.__conn is None:
+            if self.__url is None:
+                self.__url = '{db_type}+{package}://{username}:{password}@{host}:{port}/{db_name}'
+                self.__url = self.__url.format(**self.__base_param)
+                not_first_param = False
+                if self.__ext_param is not None and len(self.__ext_param.keys()) > 0:
+                    self.__url = self.__url + '?'
+                    for pk, pv in self.__ext_param.items():
+                        if not_first_param:
+                            pk = '&' + pk
+                        self.__url = self.__url + pk + '=' + pv
+                        not_first_param = True
+            self.__engine = create_engine(self.__url)
+            self.__conn = self.__engine.connect()
 
     def close_conn(self):
-        try:
-            self.__conn.close()
-            self.__engine.dispose()
-        except:
-            pass
+        if self.__keep_conn is False:
+            try:
+                self.__conn.close()
+                self.__engine.dispose()
+            except:
+                pass
 
     def read_sql(self, sql):
         self.create_conn()
@@ -59,7 +63,7 @@ class SqlDB:
             self.close_conn()
         return df
 
-    def to_db(self, df, tb_name, how, chunksize):
+    def to_db(self, df, tb_name, how, chunksize, fast_load=False):
         self.create_conn()
         try:
             df.to_sql(name=tb_name, con=self.__conn, if_exists=how, index=False, chunksize=chunksize)
@@ -75,6 +79,7 @@ class SqlDB:
                 for sql_text in sql:
                     sql_text = text(sql_text)
                     self.__conn.execute(sql_text)
+                    self.__conn.commit()
             except Exception as e:
                 raise Exception('执行sql出错: ' + str(e)[0:500])
             finally:
@@ -83,6 +88,7 @@ class SqlDB:
             sql = text(sql)
             try:
                 self.__conn.execute(sql)
+                self.__conn.commit()
             except Exception as e:
                 raise Exception('执行sql出错: ' + str(e)[0:500])
             finally:
@@ -95,9 +101,12 @@ class SqlDB:
         file_path = str(file_path).replace('\\', '\\\\')
         return file_path
 
+    def set_db(self, db_name):
+        self.__base_param['db_name'] = db_name
+
 
 class MySQL(SqlDB):
-    def __init__(self, host, username, password, port, db_name, charset='utf8mb4', conn_package='pymysql'):
+    def __init__(self, host, username, password, port, db_name, charset='utf8mb4', conn_package='pymysql', keep_conn=False, jdbc_url=None):
         super().__init__(
             conn_package=conn_package,
             db_type='mysql',
@@ -106,7 +115,8 @@ class MySQL(SqlDB):
             password=password,
             port=port,
             db_name=db_name,
-            url=None
+            jdbc_url=jdbc_url,
+            keep_conn=keep_conn
         )
         self.__charset = charset
         super().set_ext_param(charset=self.__charset)
@@ -129,7 +139,7 @@ class MySQL(SqlDB):
 
 
 class PostgresSQL(SqlDB):
-    def __init__(self, host, username, password, port, db_name, conn_package='psycopg2'):
+    def __init__(self, host, username, password, port, db_name, conn_package='psycopg2', keep_conn=False, jdbc_url=None):
         super().__init__(
             conn_package=conn_package,
             db_type='postgresql',
@@ -138,12 +148,13 @@ class PostgresSQL(SqlDB):
             password=password,
             port=port,
             db_name=db_name,
-            url=None
+            jdbc_url=jdbc_url,
+            keep_conn=keep_conn
         )
 
 
 class MSSQL(SqlDB):
-    def __init__(self, host, username, password, port, db_name, conn_package='pymssql'):
+    def __init__(self, host, username, password, port, db_name, conn_package='pymssql', keep_conn=False, jdbc_url=None):
         super().__init__(
             conn_package=conn_package,
             db_type='mssql',
@@ -152,12 +163,13 @@ class MSSQL(SqlDB):
             password=password,
             port=port,
             db_name=db_name,
-            url=None
+            jdbc_url=jdbc_url,
+            keep_conn=keep_conn
         )
 
 
 class Oracle(SqlDB):
-    def __init__(self, host, username, password, port, db_name, conn_package='cx_oracle'):
+    def __init__(self, host, username, password, port, db_name, conn_package='cx_oracle', keep_conn=False, jdbc_url=None):
         super().__init__(
             conn_package=conn_package,
             db_type='oracle',
@@ -166,12 +178,13 @@ class Oracle(SqlDB):
             password=password,
             port=port,
             db_name=db_name,
-            url=None
+            jdbc_url=jdbc_url,
+            keep_conn=keep_conn
         )
 
 
 class Cliskhouse(SqlDB):
-    def __init__(self, host, username, password, port, db_name, conn_package='native'):
+    def __init__(self, host, username, password, port, db_name, conn_package='native', keep_conn=False, jdbc_url=None):
         super().__init__(
             conn_package=conn_package,
             db_type='clickhouse',
@@ -180,7 +193,8 @@ class Cliskhouse(SqlDB):
             password=password,
             port=port,
             db_name=db_name,
-            url=None
+            jdbc_url=jdbc_url,
+            keep_conn=keep_conn
         )
         self.__host = host
         self.__username = username
@@ -196,7 +210,8 @@ class Cliskhouse(SqlDB):
             query = 'INSERT INTO {db_name}.{table_name} FORMAT TabSeparatedWithNames'
             query = query.format(db_name=self.__db_name, table_name=tb_name)
             cmd = 'cat {file_path} | clickhouse-client --host {host} --port {port} --user {user} --password {password} --query "{query}"'
-            cmd = cmd.format(file_path=file_path, host=self.__host, port=str(self.__port), user=self.__username, password=self.__password, query=query)
+            cmd = cmd.format(file_path=file_path, host=self.__host, port=str(self.__port), user=self.__username, password=self.__password,
+                             query=query)
             os.system(cmd)
             try:
                 os.unlink(file_path)
@@ -207,7 +222,10 @@ class Cliskhouse(SqlDB):
 
 
 class Sqlite:
-    def __init__(self, file_path):
+    def __init__(self, file_path=None, keep_conn=False, jdbc_url=None):
+        if jdbc_url is None:
+            jdbc_url = 'sqlite:///%s' % str(file_path)
         super().__init__(
-            url='sqlite:///%s' % file_path
+            jdbc_url=jdbc_url,
+            keep_conn=keep_conn
         )
