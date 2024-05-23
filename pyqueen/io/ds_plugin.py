@@ -76,6 +76,10 @@ class DsPlugin:
         rows = df.values[0][0]
         return int(rows)
 
+    def get_value(self, sql):
+        df = self.read_sql(sql)
+        return df.values[0][0]
+
     def get_sql_group(self, sql, params):
         df = None
         for param in params:
@@ -122,7 +126,7 @@ class DsExt:
         return result
 
     @staticmethod
-    def to_images(df, file_path=None, col_width=None, font_size=None):
+    def to_image(df, file_path=None, col_width=None, font_size=None):
         """
         基于 pandas.DataFrame 生成png图片
 
