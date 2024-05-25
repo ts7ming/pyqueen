@@ -7,6 +7,7 @@
 ![Language](https://img.shields.io/badge/language-Python-brightgreen)
 [![Documentation Status](https://readthedocs.org/projects/pyqueen/badge/?version=latest)](https://pyqueen.readthedocs.io/zh-cn/latest/?badge=latest)
 ![GitHub Repo stars](https://img.shields.io/github/stars/ts7ming/pyqueen)
+![GitHub forks](https://img.shields.io/github/forks/ts7ming/pyqueen)
 [![PyPI downloads](https://img.shields.io/pypi/dm/pyqueen.svg)](https://pypistats.org/packages/pyqueen)
 
 PyQueen is a data development toolkit that can build ETL workflows
@@ -21,26 +22,83 @@ PyQueen is a data development toolkit that can build ETL workflows
 pip install pyqueen
 ```
 
-## Databases and IO
+## Data IO
 
-- dbtype: mysql,mssql,oracle,clickhouse,sqlite,postgresql(or pgsql)
-- connection will be destroyed after operation. no need to pay attention to the connection pool
-    - if you need keep connection, use `ds.keep_conn()` and `ds.close_conn()`
-- use `ds.set_db(db_name)` to change database
-- use `ds.set_charset(charset)` to change charset. default `utf8mb4`
-- use `ds.set_chunksize(1000)` to change chunksize. default `10000`
-- required packages
-    - mysql: `pip install pymysql`
-    - mssql: `pip install pymssql`
-        - or `pip install pyodbc` with `ds.set_package('pyodbc')`
-    - oracle: `pip install cx_oracle`
-    - clickhouse: `pip install clickhouse-driver`
-    - postgresql: `pip install psycopg2`
+read and write databases and other datasource
+
+#### Parameters:
+- conn_type: mysql,oracle,mssql,clickhouse,pgsql,sqlite,jdbc,redis,excel,ftp,web
+- host: option, default:None. conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp) 
+- username: option, default:None. conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp) 
+- password: option, default:None. conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp) 
+- port: option, default:None. conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp) 
+- db_name: option, default:None. conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis) 
+- file_path: option, default:None. conn_type in (sqlite, excel) 时
+- jdbc_url: option, default:None. conn_type in (mysql, oracle, mssql, clickhouse, pgsql, sqlite) 
+- cache_dir: option, default:None. conn_type in (web, ) 时
+- keep_conn: option, default:False. conn_type in (mysql, oracle, mssql, clickhouse, pgsql, jdbc_url, redis) 
+    - use False, auto `ds.create_conn` and `ds.close_conn`
+    - use True, auto `ds.create_conn`, and manual `ds.close_conn()`
+- charset: option, default:None. auto charset depends on conn_type
+- conn_package: option, default:None. auto package depends on conn_type
+    - mysql: default: pymysql
+    - mssql: default: pymssql
+        - option pyodbc
+    - oracle: default: cx_oracle
+    - clickhouse: default: clickhouse-driver
+    - postgresql: default: psycopg2
+
+#### 函数
+- read_sql(sql)
+- get_sql(sql) same as read_sql
+- exe_sql(sql)
+- to_db(df, tb_name[, how, fast_load, chunksize])
+    - df: pd.DataFrame()对象
+    - tb_name: target table name
+    - how: option, default append, 
+    - fast_load: option, default False; only support MySQL and Clickhouse, export pd.DataFrame to a temp csv then import to db
+    - chunksize: option, default 10000
+- read_excel(sheet_name[, file_path])
+    - sheet_name
+    - file_name: option, default None取 self.file_path
+- to_excel(sheet_list[, file_path=None, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11, column_width=17])
+    - sheet_list: [[df1, 'sheet_name1'], [df2, 'sheet_name2'],]
+    - file_path: option, default None取 self.file_path
+    - fillna: option, default ''
+    - fmt: option, default None
+    - font: option, default '微软雅黑'
+    - font_color: option, default 'black'
+    - font_size: option, default 11
+    - column_width: option, default 17
+- get_v(key): 
+- set_v(key, value): 
+- download_dir(local_dir, remote_dir)
+    - local_dir: 
+    - remote_dir: 
+- read_page(url)
+    - init DataSource with cache_dir, save page source, read from cache_dir next time
+- set_logger([logger])
+    - logger: option, default None, use 'file', or customer function
+- row_count(table_name):
+- get_sql_group(sql, params)
+    - sql: sql template
+    - params: param list
+- pdsql(sql, data)
+    - sql: every pd.DataFrame as a table
+  - data: [[df_name1, df1],[df_name2, df2],]
+- to_images(df[, file_path, col_width, font_size])
+    - df: pd.DataFrame
+    - file_path: option, default None to a temp file
+    - col_width: option, default None auto
+    - font_size: option, default None auto
+- delete_file(path)
+- get_tmp_file()
+
 
 ```python
 from pyqueen import DataSource
 
-ds = DataSource(host='', username='', password='', port='', db_name='', db_type='')
+ds = DataSource(conn_type='mysql', host='', username='', password='', port='', db_name='')
 
 # run sql and return pd.DataFrame
 df = ds.get_sql(sql='select * from table')
@@ -55,6 +113,15 @@ ds.to_db(df=df_to_write, tb_name='')
 
 # run SQL
 ds.exe_sql(sql='delete from table')
+sql1 = 'delete from table'
+sql2 = 'insert into table select * from table2'
+sql3 = 'update table set a=1'
+ds.exe_sql(sql=[sql1, sql2, sql3])
+
+# KV databases
+ds = DataSource(conn_type='redis', host='', username='', password='', port='', db_name='')
+ds.set_v(key='kk', value='vv')
+ds.get_v(key='kk')
 
 # pd.DataFrame to image
 ### file_path: image file path. generate temporary file by default
@@ -63,15 +130,14 @@ ds.exe_sql(sql='delete from table')
 path = ds.to_image(df, file_path=None, col_width=None, font_size=None)
 
 # download web pages
-### use `set_cache_dir` will save the web page to `cache_dir`, and reads it from the local next time to avoid repeated requests for services
+### use `cache_dir` will save the web page to `cache_dir`, and reads it from the local next time to avoid repeated requests for services
 
-ds.set_cache_dir(cache_dir=None)
-page = ds.get_web(url='')
+ds = DataSource(cache_dir='')
+page = ds.read_page(url='')
 
 ### get text content
 from pyqueen import Utils
-
-text = Utils.html2text(html)
+text = Utils.html2text(page)
 ```
 
 ## Models
@@ -186,10 +252,15 @@ tk.lm2_start
 tk.lm2_end
 
 # time delta
-# flag: years,months,days,hours,minutes,seconds
+# flag: years,months,days,hours,minutes,seconds or 年,月,日,时,分,秒
 # value
+
+## by tk.now or tk.today
+## if need long datetime: short=False. default True
+new_day = tk.delta('days', -30, short=True)
+
+## by specified time
 new_day = tk.time_delta('20230101', 'days', -30)
-new_day = tk.time_delta('20230101', 'days', 30)
 
 # get days list
 day_list = tk.get_day_list(20200101, 20200201)
