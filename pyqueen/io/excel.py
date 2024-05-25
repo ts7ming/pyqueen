@@ -1,20 +1,26 @@
 import pandas as pd
 import numpy as np
-import xlsxwriter
 import os
 
 
 class Excel:
-    @staticmethod
-    def read_excel(path, sheet_name=None):
-        df = pd.read_excel(path, sheet_name=sheet_name)
+    def __init__(self, file_path=None):
+        if str(file_path)[-5:] != '.xlsx':
+            self.file_path = file_path + '.xlsx'
+        else:
+            self.file_path = file_path
+
+    def read_excel(self, sheet_name=None, file_path=None):
+        if file_path is not None:
+            df = pd.read_excel(file_path, sheet_name=sheet_name)
+        else:
+            df = pd.read_excel(self.file_path, sheet_name=sheet_name)
         return df
 
-    @staticmethod
-    def to_excel(file_path, sheet_list, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11,
-                 column_width=17):
-        if str(file_path)[-5:] != '.xlsx':
-            raise Exception('文件路径必须 .xlsx 结尾')
+    def to_excel(self, sheet_list, file_path=None, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11, column_width=17):
+        if file_path is None:
+            file_path = self.file_path
+        import xlsxwriter
         if os.path.exists(os.path.dirname(file_path)) is False:
             os.makedirs(os.path.dirname(file_path))
         wb = xlsxwriter.Workbook(file_path)
@@ -58,16 +64,3 @@ class Excel:
                     value = data[row_index][col_index]
                     ws.write(row_index + 1, col_index, value, col_format)
         wb.close()
-
-    @staticmethod
-    def delete_file(path):
-        try:
-            ls = os.listdir(path)
-            for i in ls:
-                c_path = os.path.join(path, i)
-                try:
-                    os.remove(c_path)
-                except Exception as e:
-                    pass
-        except Exception as e:
-            pass
