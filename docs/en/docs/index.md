@@ -53,7 +53,7 @@ read and write databases and other datasource
 - get_sql(sql) same as read_sql
 - exe_sql(sql)
 - to_db(df, tb_name[, how, fast_load, chunksize])
-    - df: pd.DataFrame()对象
+    - df: pd.DataFrame()
     - tb_name: target table name
     - how: option, default append, 
     - fast_load: option, default False; only support MySQL and Clickhouse, export pd.DataFrame to a temp csv then import to db
