@@ -221,11 +221,10 @@ class Cliskhouse(SqlDB):
             super().to_db(df=df, tb_name=tb_name, how=how, chunksize=chunksize)
 
 
-class Sqlite:
-    def __init__(self, file_path=None, keep_conn=False, jdbc_url=None):
+class Sqlite(SqlDB):
+    def __init__(self, file_path=None, jdbc_url=None):
         if jdbc_url is None:
             jdbc_url = 'sqlite:///%s' % str(file_path)
         super().__init__(
-            jdbc_url=jdbc_url,
-            keep_conn=keep_conn
+            jdbc_url=jdbc_url
         )
