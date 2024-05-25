@@ -1,3 +1,4 @@
+import inspect
 import warnings
 import pandas as pd
 from pyqueen.io.ds_plugin import DsLog, DsPlugin, DsConfig, DsExt
@@ -19,26 +20,30 @@ __conn_type_mapping__ = {
 }
 
 __support_conn_type__ = tuple(__conn_type_mapping__.keys())
-print(','.join(__support_conn_type__))
 
 
 class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
-    def __init__(self,
-                 conn_type=None,
-                 host=None,
-                 username=None,
-                 password=None,
-                 port=None,
-                 db_name=None,
-                 db_type=None,
-                 file_path=None,
-                 jdbc_url=None,
-                 cache_dir=None,
-                 keep_conn=False,
-                 charset=None,
-                 conn_package=None
-                 ):
+    def __init__(self, conn_type=None, host=None, username=None, password=None, port=None, db_name=None, db_type=None, file_path=None, jdbc_url=None,
+                 cache_dir=None, keep_conn=False, charset=None, conn_package=None):
         super().__init__()
+
+        self.conn_type = conn_type
+        self.host = host
+        self.username = username
+        self.password = password
+        self.port = port
+        self.db_name = db_name
+        self.db_type = db_type
+        self.file_path = file_path
+        self.jdbc_url = jdbc_url
+        self.cache_dir = cache_dir
+        self.keep_conn = keep_conn
+        self.charset = charset
+        self.conn_package = conn_package
+
+        init_params = {k: getattr(self, k) for k in list(inspect.signature(self.__init__).parameters.keys())}
+        init_params = {k: v for k, v in init_params.items() if v is not None}
+
         if conn_type is None and db_type is None:
             raise Exception('missing conn_type! supported conn_type:' + ','.join(__support_conn_type__))
         if conn_type is None and db_type is not None:
@@ -48,20 +53,16 @@ class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
         operator = __conn_type_mapping__[conn_type]
         if conn_type in ('mysql', 'mssql', 'oracle', 'clickhouse', 'sqlite', 'postgresql', 'pgsql', 'jdbc'):
             from pyqueen.io import sqldb
-            self.operator = getattr(sqldb, operator)(
-                host=host,
-                username=username,
-                password=password,
-                port=port,
-                db_name=db_name,
-                jdbc_url=jdbc_url,
-                keep_conn=keep_conn,
-                charset=charset,
-                conn_package=conn_package
-            )
+            _class = getattr(sqldb, operator)
+            req_params = list(inspect.signature(_class).parameters.keys())
+            run_param = {k: v for k, v in init_params.items() if k in req_params}
+            self.operator = _class(**run_param)
         elif conn_type in ('excel',):
             from pyqueen.io import excel
-            self.operator = getattr(excel, operator)(file_path=file_path)
+            _class = getattr(excel, operator)
+            req_params = list(inspect.signature(_class).parameters.keys())
+            run_param = {k: v for k, v in init_params.items() if k in req_params}
+            self.operator = _class(**run_param)
         elif conn_type in ('redis',):
             from pyqueen.io import kvdb
             self.operator = getattr(kvdb, operator)(conn_type=conn_type, host=host, port=port, db_name=db_name, keep_conn=keep_conn)
