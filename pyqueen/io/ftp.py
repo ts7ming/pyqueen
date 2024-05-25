@@ -1,15 +1,15 @@
 from ctypes import *
 import os
-import ftplib
 
 
 class FTP:
-    def __init__(self, username, password, host, port):
+    def __init__(self, username, password, host, port, encoding='utf-8'):
         self.__ftp = None
         self.username = username
         self.password = password
         self.host = host
         self.port = port
+        self.encoding = encoding
 
     def __download_file(self, local_file, remote_file):  # 下载单个文件
         file_handler = open(local_file, 'wb')
@@ -32,10 +32,11 @@ class FTP:
                 self.__download_file(local, file)
         self.__ftp.cwd("..")
 
-    def download_folder(self, local_dir, remote_dir):
+    def download_dir(self, local_dir, remote_dir):
+        import ftplib
         self.__ftp = ftplib.FTP()
         self.__ftp.connect(self.host, self.port)
-        self.__ftp.encoding = 'utf-8'
+        self.__ftp.encoding = self.encoding
         self.__ftp.login(self.username, self.password)
         self.__download_folder(local_dir, remote_dir)  # 递归执行
         self.__ftp.quit()
