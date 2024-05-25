@@ -26,7 +26,7 @@ pip install pyqueen
          
 读写数据库, 文件和其他类型的数据源
 
-#### 参数 Parameters:
+#### 参数:
 - conn_type: mysql,oracle,mssql,clickhouse,pgsql,sqlite,jdbc,redis,excel,ftp,web (为兼容1.0版本,暂时可用 db_type 代替)
 - host: 可选, 默认:None. conn_type为 (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp) 时
 - username: 可选, 默认:None. conn_type为 (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp) 时
@@ -54,44 +54,44 @@ pip install pyqueen
 - get_sql(sql) 功能和 read_sql 一样, 兼容 1.0.x版本
 - exe_sql(sql)
 - to_db(df, tb_name[, how, fast_load, chunksize])
-  - df: pd.DataFrame()对象
-  - tb_name: 目标表名, 没有的话自动创建
-  - how: 可选, 默认 append:追加, 
-  - fast_load: 可选, 默认False; 仅支持MySQL 和 Clickhouse, 将 pd.DataFrame对象写入临时csv再快速导入数据库 (如果数据包含特殊字符容易出错, 慎用)
-  - chunksize: 可选, 默认10000
+    - df: pd.DataFrame()对象
+    - tb_name: 目标表名, 没有的话自动创建
+    - how: 可选, 默认 append:追加, 
+    - fast_load: 可选, 默认False; 仅支持MySQL 和 Clickhouse, 将 pd.DataFrame对象写入临时csv再快速导入数据库 (如果数据包含特殊字符容易出错, 慎用)
+    - chunksize: 可选, 默认10000
 - read_excel(sheet_name[, file_path])
-  - sheet_name
-  - file_name: 可选, 默认 None取 self.file_path, 可重新指定
+    - sheet_name
+    - file_name: 可选, 默认 None取 self.file_path, 可重新指定
 - to_excel(sheet_list[, file_path=None, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11, column_width=17])
-  - sheet_list: [[df1, 'sheet_name1'], [df2, 'sheet_name2'],]
-  - file_path: 可选, 默认 None取 self.file_path, 可重新指定
-  - fillna: 可选, 默认 ''
-  - fmt: 可选, 默认 None
-  - font: 可选, 默认 '微软雅黑'
-  - font_color: 可选, 默认 'black'
-  - font_size: 可选, 默认 11
-  - column_width: 可选, 默认 17
+    - sheet_list: [[df1, 'sheet_name1'], [df2, 'sheet_name2'],]
+    - file_path: 可选, 默认 None取 self.file_path, 可重新指定
+    - fillna: 可选, 默认 ''
+    - fmt: 可选, 默认 None
+    - font: 可选, 默认 '微软雅黑'
+    - font_color: 可选, 默认 'black'
+    - font_size: 可选, 默认 11
+    - column_width: 可选, 默认 17
 - get_v(key): 键值数据库取值
 - set_v(key, value): 键值数据库更新值
 - download_dir(local_dir, remote_dir)
-  - local_dir: 本地目录
-  - remote_dir: 待下载远程目录
+    - local_dir: 本地目录
+    - remote_dir: 待下载远程目录
 - read_page(url)
-  - 初始化 DataSource 时指定 cache_dir, 可以缓存页面, 下次访问时直接从缓存读取
+    - 初始化 DataSource 时指定 cache_dir, 可以缓存页面, 下次访问时直接从缓存读取
 - set_logger([logger])
-  - logger: 可选, 默认 None, 可使用预置的 'file', 也可以传入自定义函数
+    - logger: 可选, 默认 None, 可使用预置的 'file', 也可以传入自定义函数
 - row_count(table_name): 统计表行数
 - get_sql_group(sql, params)
-  - sql: sql模板
-  - params: 参数列表
+    - sql: sql模板
+    - params: 参数列表
 - pdsql(sql, data)
-  - sql: 将每个 pd.DataFrame 映射成一张表
-  - data: [[df_name1, df1],[df_name2, df2],]
+    - sql: 将每个 pd.DataFrame 映射成一张表
+    - data: [[df_name1, df1],[df_name2, df2],]
 - to_images(df[, file_path, col_width, font_size])
-  - df: pd.DataFrame
-  - file_path: 可选, 默认 None 写入临时路径
-  - col_width: 可选, 默认 None 自动确定
-  - font_size: 可选, 默认 None 自动确定
+    - df: pd.DataFrame
+    - file_path: 可选, 默认 None 写入临时路径
+    - col_width: 可选, 默认 None 自动确定
+    - font_size: 可选, 默认 None 自动确定
 - delete_file(path)
 - get_tmp_file()
 
