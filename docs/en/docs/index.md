@@ -26,7 +26,7 @@ pip install pyqueen
 
 read and write databases and other datasource
 
-#### 参数 Parameters:
+#### Parameters:
 - conn_type: mysql,oracle,mssql,clickhouse,pgsql,sqlite,jdbc,redis,excel,ftp,web
 - host: option, default:None. conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp) 
 - username: option, default:None. conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp) 
@@ -53,44 +53,44 @@ read and write databases and other datasource
 - get_sql(sql) same as read_sql
 - exe_sql(sql)
 - to_db(df, tb_name[, how, fast_load, chunksize])
-  - df: pd.DataFrame()对象
-  - tb_name: target table name
-  - how: option, default append, 
-  - fast_load: option, default False; only support MySQL and Clickhouse, export pd.DataFrame to a temp csv then import to db
-  - chunksize: option, default 10000
+    - df: pd.DataFrame()对象
+    - tb_name: target table name
+    - how: option, default append, 
+    - fast_load: option, default False; only support MySQL and Clickhouse, export pd.DataFrame to a temp csv then import to db
+    - chunksize: option, default 10000
 - read_excel(sheet_name[, file_path])
-  - sheet_name
-  - file_name: option, default None取 self.file_path
+    - sheet_name
+    - file_name: option, default None取 self.file_path
 - to_excel(sheet_list[, file_path=None, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11, column_width=17])
-  - sheet_list: [[df1, 'sheet_name1'], [df2, 'sheet_name2'],]
-  - file_path: option, default None取 self.file_path
-  - fillna: option, default ''
-  - fmt: option, default None
-  - font: option, default '微软雅黑'
-  - font_color: option, default 'black'
-  - font_size: option, default 11
-  - column_width: option, default 17
+    - sheet_list: [[df1, 'sheet_name1'], [df2, 'sheet_name2'],]
+    - file_path: option, default None取 self.file_path
+    - fillna: option, default ''
+    - fmt: option, default None
+    - font: option, default '微软雅黑'
+    - font_color: option, default 'black'
+    - font_size: option, default 11
+    - column_width: option, default 17
 - get_v(key): 
 - set_v(key, value): 
 - download_dir(local_dir, remote_dir)
-  - local_dir: 
-  - remote_dir: 
+    - local_dir: 
+    - remote_dir: 
 - read_page(url)
-  - init DataSource with cache_dir, save page source, read from cache_dir next time
+    - init DataSource with cache_dir, save page source, read from cache_dir next time
 - set_logger([logger])
-  - logger: option, default None, use 'file', or customer function
+    - logger: option, default None, use 'file', or customer function
 - row_count(table_name):
 - get_sql_group(sql, params)
-  - sql: sql template
-  - params: param list
+    - sql: sql template
+    - params: param list
 - pdsql(sql, data)
-  - sql: every pd.DataFrame as a table
+    - sql: every pd.DataFrame as a table
   - data: [[df_name1, df1],[df_name2, df2],]
 - to_images(df[, file_path, col_width, font_size])
-  - df: pd.DataFrame
-  - file_path: option, default None to a temp file
-  - col_width: option, default None auto
-  - font_size: option, default None auto
+    - df: pd.DataFrame
+    - file_path: option, default None to a temp file
+    - col_width: option, default None auto
+    - font_size: option, default None auto
 - delete_file(path)
 - get_tmp_file()
 
