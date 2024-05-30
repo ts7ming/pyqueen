@@ -1,191 +1,193 @@
+import importlib
+import inspect
+import os
 import warnings
-import pandas as pd
 from pyqueen.io.ds_plugin import DsLog, DsPlugin, DsConfig, DsExt
+import sys
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 warnings.simplefilter(action='always', category=PendingDeprecationWarning)
 
 __conn_type_mapping__ = {
-    'mysql': 'MySQL',
-    'oracle': 'Oracle',
-    'mssql': 'MSSQL',
-    'clickhouse': 'Clickhouse',
-    'pgsql': 'PostgresSQL',
-    'sqlite': 'Sqlite',
-    'jdbc': 'SqlDB',
-    'redis': 'KvDB',
-    'excel': 'Excel',
-    'ftp': 'Ftp',
-    'web': 'Web'
+    'mysql': {'class': 'sqldb.MySQL'},
+    'oracle': {'class': 'sqldb.Oracle'},
+    'mssql': {'class': 'sqldb.MSSQL'},
+    'clickhouse': {'class': 'sqldb.Clickhouse'},
+    'pgsql': {'class': 'sqldb.PostgresSQL'},
+    'sqlite': {'class': 'sqldb.Sqlite'},
+    'jdbc': {'class': 'sqldb.SqlDB'},
+    'redis': {'class': 'kvdb.KvDB'},
+    'excel': {'class': 'excel.Excel'},
+    'ftp': {'class': 'ftp.Ftp'},
+    'web': {'class': 'web.Web'}
 }
 
 __support_conn_type__ = tuple(__conn_type_mapping__.keys())
-print(','.join(__support_conn_type__))
 
 
 class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
-    def __init__(self,
-                 conn_type=None,
-                 host=None,
-                 username=None,
-                 password=None,
-                 port=None,
-                 db_name=None,
-                 db_type=None,
-                 file_path=None,
-                 jdbc_url=None,
-                 cache_dir=None,
-                 keep_conn=False,
-                 charset=None,
-                 conn_package=None
-                 ):
+    def __init__(self, conn_type='excel', host=None, username=None, password=None, port=None, db_name=None, db_type=None, file_path=None, jdbc_url=None,
+                 cache_dir=None, keep_conn=False, charset=None, conn_package=None, conn_params=None):
         super().__init__()
-        if conn_type is None and db_type is None:
-            raise Exception('missing conn_type! supported conn_type:' + ','.join(__support_conn_type__))
         if conn_type is None and db_type is not None:
             warnings.warn(message="recommend using the 'conn_type' field instead of 'db_type'", category=PendingDeprecationWarning)
             conn_type = db_type
         conn_type = str(conn_type).lower()
-        operator = __conn_type_mapping__[conn_type]
-        if conn_type in ('mysql', 'mssql', 'oracle', 'clickhouse', 'sqlite', 'postgresql', 'pgsql', 'jdbc'):
-            from pyqueen.io import sqldb
-            self.operator = getattr(sqldb, operator)(
-                host=host,
-                username=username,
-                password=password,
-                port=port,
-                db_name=db_name,
-                jdbc_url=jdbc_url,
-                keep_conn=keep_conn,
-                charset=charset,
-                conn_package=conn_package
-            )
-        elif conn_type in ('excel',):
-            from pyqueen.io import excel
-            self.operator = getattr(excel, operator)(file_path=file_path)
-        elif conn_type in ('redis',):
-            from pyqueen.io import kvdb
-            self.operator = getattr(kvdb, operator)(conn_type=conn_type, host=host, port=port, db_name=db_name, keep_conn=keep_conn)
-        elif conn_type in ('ftp',):
-            from pyqueen.io import ftp
-            self.operator = getattr(ftp, operator)(conn_type=conn_type, host=host, port=port, username=username, password=password, encoding='utf-8')
-        elif conn_type in ('web',):
-            from pyqueen.io import web
-            self.operator = getattr(web, operator)(conn_type=conn_type, cache_dir=cache_dir)
-        else:
-            raise Exception('Unknown conn_type')
+        self.operator_name = __conn_type_mapping__[conn_type]['class']
+        self.__init_params = {k: v for k, v in locals().items()}
+        self.__init_params['conn_type'] = conn_type
+        self.__build_conn()
 
-        self.__conn_type = conn_type
-        self.__host = host
-        self.__username = username
-        self.__password = password
-        self.__port = port
-        self.__db_name = db_name
-        self.__file_path = file_path
-        self.__jdbc_url = jdbc_url
+    def __build_conn(self):
+        operator_split = self.operator_name.split('.')
+        operator_module = importlib.import_module(str(operator_split[0]))
+        operator_class = getattr(operator_module, str(operator_split[1]))
+        req_params = list(inspect.signature(operator_class).parameters.keys())
+        run_param = {k: self.__init_params[k] for k in req_params if self.__init_params[k] is not None}
+        self.operator = operator_class(**run_param)
 
-    def set_db(self, db_name):
-        self.operator.set_db(db_name=db_name)
-
-    def get_sql(self, sql):
-        return self.read_sql(sql)
-
-    def read_sql(self, sql):
-        if self.logger is not None:
+    def __run(self, log_field, **kwargs):
+        func_name = inspect.currentframe().f_back.f_code.co_name
+        func = getattr(self.operator, func_name)
+        if self.logger is not None and log_field is not None:
             self.trace_start()
-            self.etl_log['sql_text'] = str(sql).strip('\n').strip(' ')
-            self.etl_log['host'] = self.__host
-            self.etl_log['port'] = str(self.__port)
-            self.etl_log['db_name'] = self.__db_name
-            self.etl_log['conn_type'] = self.__conn_type
-        ret = self.operator.read_sql(sql)
-        if self.logger is not None:
+            for fd in log_field:
+                fd_v = getattr(self, fd, None)
+                if fd_v is None and fd in kwargs.keys():
+                    fd_v = kwargs[fd]
+                else:
+                    continue
+                fd_v = str(fd_v).strip('\n').strip(' ')
+                self.etl_log[fd] = fd_v
+        req_params = list(inspect.signature(func).parameters.keys())
+        run_param = {k: v for k, v in kwargs.items() if k in req_params}
+        ret = func(**run_param)
+        if self.logger is not None and log_field is not None:
             self.trace_end()
         return ret
 
-    def exe_sql(self, sql):
-        if self.logger is not None:
-            self.trace_start()
-            self.etl_log['sql_text'] = str(sql).strip('\n').strip(' ')
-            self.etl_log['host'] = self.__host
-            self.etl_log['port'] = str(self.__port)
-            self.etl_log['db_name'] = self.__db_name
-            self.etl_log['conn_type'] = self.__conn_type
-        self.operator.exe_sql(sql)
-        if self.logger is not None:
-            self.trace_end()
+    def set_db(self, db_name):
+        """
+        reset current database
+        :param db_name: database name
+        :return:
+        """
+        self.__init_params['db_name'] = db_name
+        self.__build_conn()
+
+    def get_sql(self, sql):
+        """
+        get data from sql query
+        :param sql: sql text
+        :return: pd.DataFrame
+        """
+        return self.read_sql(sql)
+
+    def read_sql(self, sql, data=None, engine='sqlite'):
+        """
+        get data from sql query
+        :param data: query on dataframe
+        :param engine: use sqlite or duckdb
+        :param sql: sql text
+        :return: pd.DataFrame
+        """
+        log_field = ['sql', 'host', 'port', 'db_name', 'conn_type']
+        ret = self.__run(log_field=log_field, sql=sql, data=data, engine=engine)
+        return ret
+
+    def exe_sql(self, sql, auto_commit=False):
+        """
+        execute sql on server
+        :param auto_commit:
+        :param sql: str or list; if list execute every sql in list
+        :return:
+        """
+        log_field = ['sql', 'host', 'port', 'db_name', 'conn_type']
+        ret = self.__run(log_field=log_field, sql=sql, auto_commit=auto_commit)
+        return ret
 
     def to_db(self, df, tb_name, how='append', fast_load=False, chunksize=10000):
-        if self.logger is not None:
-            self.trace_start()
-            self.etl_log['table_name'] = tb_name
-            self.etl_log['host'] = self.__host
-            self.etl_log['port'] = str(self.__port)
-            self.etl_log['db_name'] = self.__db_name
-            self.etl_log['conn_type'] = self.__conn_type
-        self.operator.to_db(df=df, tb_name=tb_name, how=how, fast_load=fast_load, chunksize=chunksize)
-        if self.logger is not None:
-            self.trace_end()
+        """
+        write a pd.DataFrame to database
+        :param df: df to write
+        :param tb_name: table name
+        :param how: append or replace
+        :param fast_load: only support mysql and clickhouse. df to csv to database
+        :param chunksize: chunksize
+        :return:
+        """
+        log_field = ['table_name', 'host', 'port', 'db_name', 'conn_type']
+        ret = self.__run(log_field=log_field, df=df, tb_name=tb_name, how=how, fast_load=fast_load, chunksize=chunksize)
+        return ret
 
     def get_v(self, key):
-        if self.logger is not None:
-            self.trace_start()
-            self.etl_log['key'] = str(key).strip('\n').strip(' ')
-            self.etl_log['host'] = self.__host
-            self.etl_log['port'] = str(self.__port)
-            self.etl_log['db_name'] = self.__db_name
-            self.etl_log['conn_type'] = self.__conn_type
-        ret = self.operator.get_v(key)
-        if self.logger is not None:
-            self.trace_end()
+        """
+        get value by key from kv database
+        :param key: key
+        :return: value
+        """
+        log_field = ['key', 'host', 'port', 'db_name', 'conn_type']
+        ret = self.__run(log_field=log_field, key=key)
         return ret
 
     def set_v(self, key, value):
-        if self.logger is not None:
-            self.trace_start()
-            self.etl_log['key'] = str(key)
-            self.etl_log['value'] = str(value)
-            self.etl_log['host'] = self.__host
-            self.etl_log['port'] = str(self.__port)
-            self.etl_log['db_name'] = self.__db_name
-            self.etl_log['conn_type'] = self.__conn_type
-        self.operator.set_v(key, value)
-        if self.logger is not None:
-            self.trace_end()
+        """
+        set value for a key on kv database
+        :param key: key
+        :param value: value
+        :return:
+        """
+        log_field = ['key', 'value', 'host', 'port', 'db_name', 'conn_type']
+        ret = self.__run(log_field=log_field, key=key, value=value)
+        return ret
 
-    def read_excel(self, sheet_name, file_path=None):
-        if file_path is None:
-            file_path = self.__file_path
-        if self.logger is not None:
-            self.trace_start()
-            self.etl_log['sheet_name'] = str(sheet_name).strip('\n').strip(' ')
-            self.etl_log['file_path'] = file_path
-            self.etl_log['conn_type'] = self.__conn_type
-        ret = self.operator.read_excel(sheet_name)
-        if self.logger is not None:
-            self.trace_end()
+    def read_excel(self, sheet_name=None, file_path=None):
+        """
+        read an excel file to pd.DataFrame
+        :param sheet_name: sheet_name
+        :param file_path: file_path, if None use self.file_path
+        :return: pd.DataFrame
+        """
+        log_field = ['sheet_name', 'file_path', 'conn_type']
+        ret = self.__run(log_field=log_field, sheet_name=sheet_name, file_path=file_path)
         return ret
 
     def to_excel(self, sheet_list, file_path=None, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11, column_width=17):
-        if self.logger is not None:
-            self.trace_start()
-            self.etl_log['file_path'] = str(file_path)
-            self.etl_log['conn_type'] = self.__conn_type
-        self.operator.to_excel(sheet_list, file_path, fillna, fmt, font, font_color, font_size, column_width)
-        if self.logger is not None:
-            self.trace_end()
+        """
+        write a pd.DataFrame to excel file
+        :param sheet_list: [[df1, sht_name1],[df2, sht_name2],...]
+        :param file_path: if None, use self.file_path
+        :param fillna: string to fill NA value
+        :param fmt: set excel cell format by column name
+        :param font: font
+        :param font_color: font color
+        :param font_size: font color
+        :param column_width: column_width
+        :return:
+        """
+        log_field = ['file_path', 'conn_type']
+        ret = self.__run(log_field=log_field, sheet_list=sheet_list, file_path=file_path, fillna=fillna, fmt=fmt, font=font,
+                         font_color=font_color, font_size=font_size, column_width=column_width)
+        return ret
 
     def download_dir(self, local_dir, remote_dir):
-        if self.logger is not None:
-            self.trace_start()
-            self.etl_log['local_dir'] = str(local_dir).strip('\n').strip(' ')
-            self.etl_log['remote_dir'] = str(remote_dir).strip('\n').strip(' ')
-            self.etl_log['host'] = self.__host
-            self.etl_log['port'] = str(self.__port)
-            self.etl_log['username'] = self.__username
-            self.etl_log['conn_type'] = self.__conn_type
-        self.operator.download_dir(local_dir, remote_dir)
-        if self.logger is not None:
-            self.trace_end()
+        """
+        download entire dir from ftp server
+        :param local_dir: local dir
+        :param remote_dir: remote dir
+        :return:
+        """
+        log_field = ['local_dir', 'remote_dir', 'host', 'port', 'username', 'conn_type']
+        ret = self.__run(log_field=log_field, local_dir=local_dir, remote_dir=remote_dir)
+        return ret
 
     def read_page(self, url):
-        return self.operator.read_page(url=url)
+        """
+        get source code of a page by url
+        :param url: url
+        :return: page
+        """
+        log_field = None
+        ret = self.__run(log_field=log_field, url=url)
+        return ret

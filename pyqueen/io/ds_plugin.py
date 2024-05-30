@@ -1,11 +1,18 @@
 import datetime
 import os
-
+import numpy as np
 import pandas as pd
-
+from pyqueen.io.excel import Excel
 
 class DsLog:
+    """
+    Logger for DataSource
+    """
+
     def __init__(self):
+        """
+        Logger for DataSource
+        """
         self.__t_start = None
         self.etl_log = {}
         self.__etl_param_sort = [
@@ -27,6 +34,11 @@ class DsLog:
 
     @staticmethod
     def __file_log(etl_log):
+        """
+        std logger for "file", save ds log to file
+        :param etl_log: etl log
+        :return:
+        """
         log_path = etl_log['py_path']
         log_path = str(log_path).replace('.py', '.log')
         info = '\n------------------------------------\n'
@@ -37,12 +49,21 @@ class DsLog:
             f.write(info)
 
     def set_logger(self, logger):
+        """
+        reset logger for DataSource
+        :param logger: a function
+        :return:
+        """
         if str(logger) == 'file':
             self.logger = self.__file_log
         else:
             self.logger = logger
 
     def trace_start(self):
+        """
+        DataSource log
+        :return:
+        """
         self.__t_start = datetime.datetime.now()
         import inspect
         a = inspect.stack()[2]
@@ -53,6 +74,10 @@ class DsLog:
         self.etl_log['func_name'] = func
 
     def trace_end(self):
+        """
+        DataSource log
+        :return:
+        """
         t_end = datetime.datetime.now()
         t_duration = str((t_end - self.__t_start).seconds)
         self.etl_log['end_time'] = str(t_end.strftime('%Y-%m-%d %H:%M:%S'))
@@ -67,20 +92,42 @@ class DsLog:
 
 
 class DsPlugin:
+    """
+    plugin for DataSource
+    """
     def read_sql(self, sql):
+        """
+        tmp
+        """
         return pd.DataFrame()
 
     def row_count(self, table_name):
+        """
+        quickly count rows of a table
+        :param table_name: table name
+        :return: row nums
+        """
         sql = 'select count(1) from ' + table_name
         df = self.read_sql(sql)
         rows = df.values[0][0]
         return int(rows)
 
     def get_value(self, sql):
+        """
+        quickly get first value of a query
+        :param sql: sql text
+        :return: value
+        """
         df = self.read_sql(sql)
         return df.values[0][0]
 
     def get_sql_group(self, sql, params):
+        """
+        quickly get many params query
+        :param sql:
+        :param params:
+        :return:
+        """
         df = None
         for param in params:
             new_sql = sql.format(param)
@@ -116,6 +163,9 @@ class DsConfig:
 
 
 class DsExt:
+    """
+    extend function for DataSource
+    """
     @staticmethod
     def pdsql(sql, data):
         import duckdb
