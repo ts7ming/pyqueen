@@ -22,26 +22,118 @@ PyQueen is a data development toolkit that can build ETL workflows
 pip install pyqueen
 ```
 
-## Databases and IO
+## Data IO
 
-- dbtype: mysql,mssql,oracle,clickhouse,sqlite,postgresql(or pgsql)
-- connection will be destroyed after operation. no need to pay attention to the connection pool
-    - if you need keep connection, use `ds.keep_conn()` and `ds.close_conn()`
-- use `ds.set_db(db_name)` to change database
-- use `ds.set_charset(charset)` to change charset. default `utf8mb4`
-- use `ds.set_chunksize(1000)` to change chunksize. default `10000`
-- required packages
-    - mysql: `pip install pymysql`
-    - mssql: `pip install pymssql`
-        - or `pip install pyodbc` with `ds.set_package('pyodbc')`
-    - oracle: `pip install cx_oracle`
-    - clickhouse: `pip install clickhouse-driver`
-    - postgresql: `pip install psycopg2`
+pyqueen.DataSource: read and write databases and other datasource
+
+#### Parameters:
+- conn_type: support mysql,oracle,mssql,clickhouse,pgsql,sqlite,jdbc,redis,excel,ftp,web
+
+- host: option, default:None
+    - when conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp)
+
+- username: option, default:None
+    - when conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp)
+
+- password: option, default:None
+    - when conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp)
+
+- port: option, default:None
+    - when conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp)
+
+- db_name: option, default:None
+    - when conn_type in (mysql, oracle, mssql, clickhouse, pgsql, redis)
+
+- file_path: option, default:None
+    - when conn_type in (sqlite, excel)
+
+- jdbc_url: option, default:None
+    - when conn_type in (mysql, oracle, mssql, clickhouse, pgsql, sqlite)
+
+- cache_dir: option, default:None
+    - when conn_type in (web,)
+
+- keep_conn: option, default:False
+    - conn_type in (mysql, oracle, mssql, clickhouse, pgsql, jdbc_url, redis)
+    - use False, auto `ds.create_conn` and `ds.close_conn`
+    - use True, auto `ds.create_conn`, and manual `ds.close_conn()`
+
+- charset: option, default:None
+    - auto charset depends on conn_type
+
+
+#### Function
+- read_sql(sql[, data, engine]):
+    - when `conn_type` is database, run sql and return pd.DataFrame()
+    - when `conn_type` is excel, every sheet as a table, run sql and return pd.DataFrame()
+    - when `conn_type` is None, use `data` , run sql and return pd.DataFrame()
+        - data: {'tb_name1': df, 'tb_name2': df2}
+        - engine: default sqlite, also support duckdb
+
+- get_sql(sql): same as read_sql
+
+- exe_sql(sql[, auto_commit])
+    - like `delete/update/insert`
+    - auto_commit: default False
+
+- to_db(df, tb_name[, how, fast_load, chunksize])
+    - df: pd.DataFrame()
+    - tb_name: target table name
+    - how: option, default append
+    - fast_load: option, default False; only support MySQL and Clickhouse, export pd.DataFrame to a temp csv then import to db
+    - chunksize: option, default 10000
+
+- read_excel([sheet_name, file_path])
+    - sheet_name: option, default None will read all sheets
+    - file_path: option, default None will use self.file_path. use file_path to reset file path 
+  
+- to_excel(sheet_list[, file_path=None, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11, column_width=17])
+    - sheet_list: [[df1, 'sheet_name1'], [df2, 'sheet_name2'],]
+    - file_path: option, default None取 self.file_path
+    - fillna: option, default ''
+    - fmt: option, default None
+    - font: option, default '微软雅黑'
+    - font_color: option, default 'black'
+    - font_size: option, default 11
+    - column_width: option, default 17
+  
+- get_v(key):
+
+- set_v(key, value):
+
+- download_dir(local_dir, remote_dir): download entire dir from ftp
+    - local_dir:
+    - remote_dir:
+  
+- read_page(url)
+    - init DataSource with cache_dir, save page source, read from cache_dir next time
+
+- set_logger([logger])
+    - logger: option, default None, use 'file', or customer function
+
+- row_count(table_name):
+
+- get_sql_group(sql, params)
+    - sql: sql template
+    - params: param list
+
+- to_images(df[, file_path, col_width, font_size])
+    - df: pd.DataFrame
+    - file_path: option, default None to a temp file
+    - col_width: option, default None auto
+    - font_size: option, default None auto
+  
+- delete_file(path)
+
+- get_tmp_file()
+
+
+#### Example
 
 ```python
 from pyqueen import DataSource
 
-ds = DataSource(host='', username='', password='', port='', db_name='', db_type='')
+ds = DataSource(conn_type='mysql', host='', username='', password='', port='', db_name='')
 
 # run sql and return pd.DataFrame
 df = ds.get_sql(sql='select * from table')
@@ -56,6 +148,15 @@ ds.to_db(df=df_to_write, tb_name='')
 
 # run SQL
 ds.exe_sql(sql='delete from table')
+sql1 = 'delete from table'
+sql2 = 'insert into table select * from table2'
+sql3 = 'update table set a=1'
+ds.exe_sql(sql=[sql1, sql2, sql3])
+
+# KV databases
+ds = DataSource(conn_type='redis', host='', username='', password='', port='', db_name='')
+ds.set_v(key='kk', value='vv')
+ds.get_v(key='kk')
 
 # pd.DataFrame to image
 ### file_path: image file path. generate temporary file by default
@@ -64,15 +165,14 @@ ds.exe_sql(sql='delete from table')
 path = ds.to_image(df, file_path=None, col_width=None, font_size=None)
 
 # download web pages
-### use `set_cache_dir` will save the web page to `cache_dir`, and reads it from the local next time to avoid repeated requests for services
+### use `cache_dir` will save the web page to `cache_dir`, and reads it from the local next time to avoid repeated requests for services
 
-ds.set_cache_dir(cache_dir=None)
-page = ds.get_web(url='')
+ds = DataSource(cache_dir='')
+page = ds.read_page(url='')
 
 ### get text content
 from pyqueen import Utils
-
-text = Utils.html2text(html)
+text = Utils.html2text(page)
 ```
 
 ## Models
@@ -107,7 +207,15 @@ sql = '''
   inner join table3 c on a.d2 = c.d2
   group by b.d1_name,c.d2_name
 '''
-df_summary = ds.pdsql(sql=sql, data=data)
+df_summary = ds.read_sql(sql=sql, data=data)
+
+### sql on excel
+# excel:
+ds = DataSource(conn_type='excel', file_path='myexcel.xlsx')
+sql = '''
+select * from sheet1 union all select * from sheet2
+'''
+df_summary = ds.read_sql(sql=sql)
 ```
 
 ## Download FTP files
@@ -116,7 +224,7 @@ df_summary = ds.pdsql(sql=sql, data=data)
 from pyqueen import DataSource
 
 ds = DataSource(host='', username='', password='', port='', db_type='ftp')
-ds.download_ftp(local_dir='', remote_dir='')
+ds.download_dir(local_dir='', remote_dir='')
 ```
 
 ## Chart
@@ -136,7 +244,7 @@ Chart.bubble(x=df['x_col'], y=df['y_col'], v=df['value_col'], c=df['color'], x_l
 ## Save Excel file
 
 - save pd.DataFrame objects to excel
-- file_path:  (end with `.xlsx`)
+- file_path:
 - sheet_list: each DataFrame to a sheet
 
 ```python
@@ -155,7 +263,16 @@ fmt = {
     'col4': '0.00%',
     'col5': 'YYYY-MM-DD'
 }
-ds.to_excel(file_path='xxx.xlsx', sheet_list=sheet_list, fmt=fmt)
+ds.to_excel(sheet_list=sheet_list, fmt=fmt)
+# or 
+ds.to_excel(file_path='/new_path/file.xlsx', sheet_list=sheet_list, fmt=fmt)
+
+# sql on Excel
+## an excel file as a database, a sheet as a table
+sql = '''
+select * from df1 union all select * from df2
+'''
+df_new = ds.read_sql(sql=sql)
 ```
 
 ## Time Kit
