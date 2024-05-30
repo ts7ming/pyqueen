@@ -5,21 +5,55 @@ import os
 
 class Excel:
     def __init__(self, file_path=None):
-        if str(file_path)[-5:] != '.xlsx':
-            self.file_path = file_path + '.xlsx'
+        self.__ds = None
+        if file_path is None:
+            file_path = 'pyqueen_excel'
+        self.file_path = self.__check_path(file_path=file_path)
+
+    @staticmethod
+    def __check_path(file_path):
+        if os.path.isabs(file_path) and str(file_path)[-5:] == '.xlsx':
+            pass
+        elif os.path.isabs(file_path) is False and str(file_path)[-5:] != '.xlsx':
+            file_path = os.path.join(os.path.curdir, file_path) + '.xlsx'
         else:
-            self.file_path = file_path
+            file_path = os.path.join(os.path.curdir, file_path)
+        return file_path
 
     def read_excel(self, sheet_name=None, file_path=None):
         if file_path is not None:
+            file_path = self.__check_path(file_path)
             df = pd.read_excel(file_path, sheet_name=sheet_name)
         else:
             df = pd.read_excel(self.file_path, sheet_name=sheet_name)
         return df
 
+    def read_sql(self, sql, data=None, engine='sqlite'):
+        from pyqueen import DataSource
+        if engine == 'sqlite':
+            self.__ds = DataSource(conn_type='sqlite', keep_conn=True)
+            if data is None:
+                data = pd.read_excel(self.file_path, sheet_name=None)
+            for sht_name, df in data.items():
+                self.__ds.to_db(df, sht_name)
+            df_result = self.__ds.read_sql(sql)
+            self.__ds.close_conn()
+        elif engine == 'duckdb':
+            import duckdb
+            with duckdb.connect() as conn:
+                for df_name, df in data.items():
+                    conn.register(df_name, df)
+                df_result = conn.execute(sql).df()
+        else:
+            raise Exception('wrong engine')
+        return df_result
+
     def to_excel(self, sheet_list, file_path=None, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11, column_width=17):
-        if file_path is None:
+        if file_path is not None:
+            file_path = self.__check_path(file_path)
+        else:
             file_path = self.file_path
+
         import xlsxwriter
         if os.path.exists(os.path.dirname(file_path)) is False:
             os.makedirs(os.path.dirname(file_path))
@@ -64,3 +98,4 @@ class Excel:
                     value = data[row_index][col_index]
                     ws.write(row_index + 1, col_index, value, col_format)
         wb.close()
+        return file_path
