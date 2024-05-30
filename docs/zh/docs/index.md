@@ -22,39 +22,141 @@ PyQueen 是一个数据处理工具箱, 用于构建ETL工作流.
 pip install pyqueen
 ```
 
-## 读写数据库
+## 数据读写
 
-- dbtype: 可选 mysql,mssql,oracle,clickhouse,sqlite,postgresql(或 pgsql)
-- 每次操作数据库都会销毁连接, 无需关注连接池情况
-    - 如需主动控制连接 使用: `ds.keep_conn()` 和 `ds.close_conn()`
-- 如需切换 db_name 使用: `ds.set_db(db_name)`
-- 设置字符集 使用: `ds.set_charset(charset)`. 默认: `utf8mb4`
-- 设置 chunksize 使用 `ds.set_chunksize(1000)`. 默认: `10000`
-- 数据库连接支持
-    - mysql: `pip install pymysql`
-    - mssql: `pip install pymssql`
-        - 可选 `pip install pyodbc` 需指定 `ds.set_package('pyodbc')`
-    - oracle: `pip install cx_oracle`
-    - clickhouse: `pip install clickhouse-driver`
-    - postgresql: `pip install psycopg2`
+pyqueen.DataSource: 读写数据库, 文件和其他类型的数据源
+
+#### 参数:
+- conn_type: 支持 mysql,oracle,mssql,clickhouse,pgsql,sqlite,jdbc,redis,excel,ftp,web
+    - (为兼容1.0版本,暂时可用 db_type 代替)
+
+- username: 可选, 默认:None
+    - conn_type 为 (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp) 时
+
+- password: 可选, 默认:None
+    - conn_type 为 (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp) 时
+
+- port: 可选, 默认:None
+    - conn_type 为 (mysql, oracle, mssql, clickhouse, pgsql, redis, ftp) 时
+
+- db_name: 可选, 默认:None
+    - conn_type 为 (mysql, oracle, mssql, clickhouse, pgsql, redis) 时
+
+- file_path: 可选, 默认:None
+    - conn_type 为 (sqlite, excel) 时
+
+- jdbc_url: 可选, 默认:None
+    - conn_type 为 (mysql, oracle, mssql, clickhouse, pgsql, sqlite) 时
+    - 指定 jdbc_url 后优先用url创建连接
+
+- cache_dir: 可选, 默认:None
+    - conn_type 为 (web, )
+
+- keep_conn: 可选, 默认:False
+    - conn_type 为 (mysql, oracle, mssql, clickhouse, pgsql, jdbc_url, redis) 时
+    - 为 False 时, 每次操作数据库都会销毁连接, 无需关注连接池情况
+    - 为 True 时, 使用后需手动 `ds.close_conn()`
+
+- charset: 可选, 默认:None. 根据 conn_type 自动使用最常用的字符集
+    - 支持指定字符集
+
+
+#### 函数
+- read_sql(sql[, data, engine]): 读取sql
+    - 如果 `conn_type` 是数据库, 执行sql结果返回为 pd.DataFrame 对象
+    - 如果 `conn_type` 是 excel, 当前excel文件每个sheet映射为一张表, 执行sql结果返回为 pd.DataFrame 对象
+    - 如果 `conn_type` 为空, 也可以 传入 data 每个 df 映射为一张表, 执行sql结果返回为 pd.DataFrame 对象
+        - data: {'tb_name1': df, 'tb_name2': df2}
+        - engine: 默认 sqlite, 可以用 duckdb
+
+- get_sql(sql) 功能和 read_sql 一样, 兼容 1.0.x版本
+
+- exe_sql(sql[, auto_commit]): 执行sql
+    - 例如 delete/update/insert语句
+    - auto_commit: 默认 False; 用于执行 create database 相关操作
+
+- to_db(df, tb_name[, how, fast_load, chunksize]): 写入数据库
+    - df: 待写入 pd.DataFrame() 对象
+    - tb_name: 目标表名, 目标库没有的话自动创建
+    - how: 可选, 默认 append:追加
+    - fast_load: 可选, 默认False; 仅支持MySQL 和 Clickhouse, 将 pd.DataFrame对象写入临时csv再快速导入数据库 (如果数据包含特殊字符容易出错, 慎用)
+    - chunksize: 可选, 默认10000
+
+- read_excel([sheet_name, file_path]): 读取excel表
+    - sheet_name: 可选, 默认 None, 取所有sheet
+    - file_path: 可选, 默认 None, 取 self.file_path, 可传入 file_path 重新指定
+
+- to_excel(sheet_list[, file_path=None, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11, column_width=17]): 写入excel表
+    - sheet_list: [[df1, 'sheet_name1'], [df2, 'sheet_name2'],]
+    - file_path: 可选, 默认 None, 取 self.file_path, 可传入 file_path 重新指定
+    - fillna: 可选, 默认 ''
+    - fmt: 可选, 默认 None
+    - font: 可选, 默认 '微软雅黑'
+    - font_color: 可选, 默认 'black'
+    - font_size: 可选, 默认 11
+    - column_width: 可选, 默认 17
+
+- get_v(key): 键值数据库取值
+
+- set_v(key, value): 键值数据库更新值
+
+- download_dir(local_dir, remote_dir)
+    - local_dir: 本地目录
+    - remote_dir: 待下载远程目录
+
+- read_page(url)
+    - 初始化 DataSource 时指定 cache_dir, 可以缓存页面, 下次访问时直接从缓存读取
+
+- set_logger([logger])
+    - logger: 可选, 默认 None, 可使用预置的 'file', 也可以传入自定义函数
+
+- row_count(table_name): 统计表行数
+
+- get_sql_group(sql, params)
+    - sql: sql模板
+    - params: 参数列表
+
+- to_images(df[, file_path, col_width, font_size])
+    - df: pd.DataFrame
+    - file_path: 可选, 默认 None 写入临时路径
+    - col_width: 可选, 默认 None 自动确定
+    - font_size: 可选, 默认 None 自动确定
+
+- delete_file(path)
+
+- get_tmp_file()
+
+#### 示例
 
 ```python
 from pyqueen import DataSource
 
-ds = DataSource(host='', username='', password='', port='', db_name='', db_type='')
-
+# conn_type 支持: mysql,oracle,mssql,clickhouse,pgsql,sqlite,jdbc,redis,excel,ftp,web
+# 为了兼容1.0版本, 目前 db_type 与 conn_type 都可用
+ds = DataSource(conn_type='mysql', host='', username='', password='', port='', db_name='')
+ds.set_db('new_db')
 # 根据sql查询, 返回 pd.DataFrame 对象
-df = ds.get_sql(sql='select * from table')
+df = ds.read_sql(sql='select * from table')
 
 # 返回查询结果的第一个值
 v = ds.get_value(sql='select count(1) from table')
 
 # 将 pd.DataFrame对象 写入数据库
-### fast_load: 默认False; 仅支持MySQL, 将 pd.DataFrame对象 写入临时csv再快速导入数据库 (如果数据包含特殊字符容易出错, 慎用)
+### fast_load: 默认False; 仅支持MySQL和Clickhouse, 将 pd.DataFrame对象 写入临时csv再快速导入数据库 (如果数据包含特殊字符容易出错, 慎用)
 ds.to_db(df=df_to_write, tb_name='')
 
 # 执行sql
 ds.exe_sql(sql='delete from table')
+sql1 = 'delete from table'
+sql2 = 'insert into table select * from table2'
+sql3 = 'update table set a=1'
+ds.exe_sql(sql=[sql1, sql2, sql3])
+
+
+# 键值数据库
+ds = DataSource(conn_type='redis', host='', username='', password='', port='', db_name='')
+ds.set_v(key='kk', value='vv')
+ds.get_v(key='kk')
 
 # pd.DataFrame 转图片
 ### 可以指定文件路径: file_path. 默认生成临时文件
@@ -63,12 +165,13 @@ ds.exe_sql(sql='delete from table')
 path = ds.to_image(df, file_path=None, col_width=None, font_size=None)
 
 # 下载网页文本
-### `set_cache_dir` 的作用是缓存网页html到 `cache_dir`, 下次访问直接从本地加载, 避免频繁请求页面
-ds.set_cache_dir(cache_dir=None)
-page = ds.get_web(url='')
+### `cache_dir` 的作用是缓存网页html到 `cache_dir`, 下次访问直接从本地加载, 避免频繁请求页面
+ds = DataSource(cache_dir='')
+page = ds.read_page(url='https://www.github.com')
+
 ### 去除html字符, 只保留文本 (保留页面所有文本, 如需精确筛选需要自行解析html)
 from pyqueen import Utils
-text = Utils.html2text(html)
+text = Utils.html2text(page)
 ```
 
 ## 常用模型
@@ -102,12 +205,16 @@ sql = '''
   inner join table3 c on a.d2 = c.d2
   group by b.d1_name,c.d2_name
 '''
-df_summary = ds.pdsql(sql=sql, data=data)
+df_summary = ds.read_sql(sql=sql, data=data)
 
-# 导入测试数据
-### 会将excel文件里的每一个sheet映射成一张表, 将这个 ds 后续的sql查询都转移到这个由excel文件生成的新数据库
-### 用于测试确认复杂计算逻辑, 相当于用excel文件代替测试数据库
-ds.import_test_data(excel_path='')
+### 用sql查询excel文件
+# excel:
+ds = DataSource(conn_type='excel', file_path='myexcel.xlsx')
+sql = '''
+select * from sheet1 union all select * from sheet2
+'''
+df_summary = ds.read_sql(sql=sql)
+
 ```
 
 ## 下载FTP文件
@@ -116,7 +223,7 @@ ds.import_test_data(excel_path='')
 from pyqueen import DataSource
 
 ds = DataSource(host='', username='', password='', port='', db_type='ftp')
-ds.download_ftp(local_dir='保存目录', remote_dir='远程目录')
+ds.download_dir(local_dir='保存目录', remote_dir='远程目录')
 ```
 
 ## 图表
@@ -150,7 +257,7 @@ Chart.bubble(x=df['x_col'], y=df['y_col'], v=df['value_col'], c=df['color'], x_l
 ```python
 from pyqueen import DataSource
 
-ds = DataSource()
+ds = DataSource(file_path='file_path.xlsx')
 
 sheet_list = [
     [df1, 'sheet_name1'],
@@ -163,7 +270,16 @@ fmt = {
     'col4': '0.00%',
     'col5': 'YYYY-MM-DD'
 }
-ds.to_excel(file_path='xxx.xlsx', sheet_list=sheet_list, fmt=fmt)
+ds.to_excel(sheet_list=sheet_list, fmt=fmt)
+# or 
+ds.to_excel(file_path='/new_path/file.xlsx', sheet_list=sheet_list, fmt=fmt)
+
+# sql on Excel
+## 将一个Excel作为一个数据库, 每个sheet作为一张表, 通过sql查询
+sql = '''
+select * from df1 union all select * from df2
+'''
+df_new = ds.read_sql(sql=sql)
 ```
 
 ## 时间处理工具

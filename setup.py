@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pyqueen',
-    version='1.0.16',
+    version='1.1.2',
     url='https://github.com/ts7ming/pyqueen.git',
     description='Rule your Data',
     long_description=open("README.md", encoding='utf-8').read(),
@@ -17,8 +17,8 @@ setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'pandas',
-        'SQLAlchemy',
+        'pandas>=2.0.0',
+        'SQLAlchemy>=2.0.0',
         'xlrd==1.2.0',
         'XlsxWriter'
     ],

@@ -1,4 +1,4 @@
-from pyqueen.io.data_source_bak import DataSource
+from pyqueen.io.data_source import DataSource
 from pyqueen.analysis.model import Model
 from pyqueen.service.pydingtalk import Dingtalk
 from pyqueen.service.pyemail import Email
