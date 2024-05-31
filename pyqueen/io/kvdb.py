@@ -23,16 +23,16 @@ class KvDB:
             else:
                 raise Exception('Unknown conn_type: ' + str(self.__conn_type))
 
-    def get_v(self, k):
+    def get_v(self, key):
         self.create_conn()
-        v = self.__conn.get(k)
+        value = self.__conn.get(key)
         self.close_conn()
-        if v is None:
+        if value is None:
             return None
-        v = v.decode(encoding=self.__charset)
-        return v
+        value = value.decode(encoding=self.__charset)
+        return value
 
-    def set_v(self, k, v):
+    def set_v(self, key, value):
         self.create_conn()
-        self.__conn.set(k, v)
+        self.__conn.set(key, value)
         self.close_conn()
