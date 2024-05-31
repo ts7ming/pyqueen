@@ -30,7 +30,7 @@ class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
     def __init__(self, conn_type='excel', host=None, username=None, password=None, port=None, db_name=None, db_type=None, file_path=None, jdbc_url=None,
                  cache_dir=None, keep_conn=False, charset=None, conn_package=None, conn_params=None):
         super().__init__()
-        if conn_type is None and db_type is not None:
+        if db_type is not None and conn_type == 'excel':
             warnings.warn(message="recommend using the 'conn_type' field instead of 'db_type'", category=PendingDeprecationWarning)
             conn_type = db_type
         conn_type = str(conn_type).lower()
