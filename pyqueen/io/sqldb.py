@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine, text
 import pandas as pd
 import inspect
-
+from urllib.parse import quote_plus
 
 class SqlDB:
     def __init__(self, conn_package=None, db_type=None, host=None, username=None, password=None, port=None, db_name=None, jdbc_url=None,
@@ -13,7 +13,7 @@ class SqlDB:
             'db_type': db_type,
             'package': str(conn_package),
             'username': str(username),
-            'password': str(password),
+            'password': quote_plus(password),
             'host': str(host),
             'port': str(port),
             'db_name': str(db_name),
@@ -192,7 +192,7 @@ class Clickhouse(SqlDB):
     def __init__(self, host, username, password, port, db_name, conn_package='native', keep_conn=False, jdbc_url=None):
         self.__host = host
         self.__username = username
-        self.__password = password
+        self.__password = quote_plus(password)
         self.__port = port
         self.__db_name = db_name
         req_params = list(inspect.signature(super().__init__).parameters.keys())
