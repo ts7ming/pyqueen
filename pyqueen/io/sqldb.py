@@ -7,6 +7,8 @@ from urllib.parse import quote_plus
 class SqlDB:
     def __init__(self, conn_package=None, db_type=None, host=None, username=None, password=None, port=None, db_name=None, jdbc_url=None,
                  keep_conn=False, conn_params=None):
+        if password is None:
+            password = ''
         self.__conn = None
         self.__engine = None
         self.__base_param = {
