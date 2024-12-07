@@ -226,6 +226,19 @@ ds = DataSource(host='', username='', password='', port='', db_type='ftp')
 ds.download_dir(local_dir='保存目录', remote_dir='远程目录')
 ```
 
+## 解析帆软SQL
+
+```python
+from pyqueen import FineReport
+
+fr = FineReport()
+data = fr.extract_sql('fr/file/dir')
+data = [
+  {'fr_path':'帆软模板(.cpt/.frm)路径','server':'帆软数据连接','fr_dataset':'帆软数据集','sql':'select * from tb'},
+  {'fr_path':'帆软模板(.cpt/.frm)路径','server':'帆软数据连接','fr_dataset':'帆软数据集','sql':'select * from tb'},
+]
+```
+
 ## 图表
 
 ```python

@@ -4,6 +4,7 @@ from pyqueen.service.pydingtalk import Dingtalk
 from pyqueen.service.pyemail import Email
 from pyqueen.service.pywechat import Wechat
 from pyqueen.service.showdoc import Showdoc
+from pyqueen.service.finereport import FineReport
 from pyqueen.utility.time_kit import TimeKit
 from pyqueen.utility.utils import Utils
 from pyqueen.utility.command import cmd
