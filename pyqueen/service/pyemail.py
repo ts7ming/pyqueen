@@ -50,7 +50,7 @@ class Email:
         try:
             msg = MIMEText(content, _subtype=type, _charset='utf-8')
             msg['subject'] = subject
-            msg['From'] = '数据中心<%s>' % self.username
+            msg['From'] = 'name <name>'.format(name=self.username)
             msg['To'] = ','.join(to_user)
             if cc_user:
                 msg['Cc'] = ','.join(cc_user)
@@ -83,7 +83,7 @@ class Email:
         try:
             msg = MIMEMultipart()
             msg['subject'] = subject
-            msg['From'] = '数据中心<%s>' % self.username
+            msg['From'] = 'name <name>'.format(name=self.username)
             msg['To'] = ','.join(to_user)
             if cc_user:
                 msg['Cc'] = ','.join(cc_user)
