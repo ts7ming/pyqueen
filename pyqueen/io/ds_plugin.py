@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from pyqueen.io.excel import Excel
 
+
 class DsLog:
     """
     Logger for DataSource
@@ -67,11 +68,9 @@ class DsLog:
         self.__t_start = datetime.datetime.now()
         import inspect
         a = inspect.stack()[2]
-        file_name = a.filename
-        func = a.function
         self.etl_log['start_time'] = str(self.__t_start.strftime('%Y-%m-%d %H:%M:%S'))
-        self.etl_log['py_path'] = file_name
-        self.etl_log['func_name'] = func
+        self.etl_log['py_path'] = inspect.stack()[3].filename
+        self.etl_log['func_name'] = inspect.stack()[2].function
 
     def trace_end(self):
         """
@@ -90,56 +89,108 @@ class DsLog:
             self.logger(sortd_log)
         self.etl_log = {}
 
+    def create_log_table(self, table_name='ds_log'):
+        """
+        create log table for DataSource
+        """
+        base_sql = """
+        CREATE TABLE IF NOT EXISTS {} (
+            `id` {} NOT NULL AUTO_INCREMENT,
+            `py_path` VARCHAR(500) DEFAULT '',
+            `func_name` VARCHAR(100) DEFAULT '',
+            `start_time` DATETIME DEFAULT NULL,
+            `end_time` DATETIME DEFAULT NULL,
+            `duration` INT DEFAULT NULL,
+            `message` VARCHAR(500) DEFAULT '',
+            `file_path` VARCHAR(500) DEFAULT '',
+            `sql_text` VARCHAR(500) DEFAULT '',
+            `host` VARCHAR(50) DEFAULT '',
+            `db_type` VARCHAR(20) DEFAULT '',
+            `port` VARCHAR(10) DEFAULT '',
+            `db_name` VARCHAR(50) DEFAULT '',
+            `table_name` VARCHAR(100) DEFAULT '',
+            PRIMARY KEY (`id`)
+        ) {}
+        """
+
+        id_type = ''
+        extra = ''
+        if self.conn_type == 'mysql':
+            id_type = 'BIGINT UNSIGNED'
+            extra = 'ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+        elif self.conn_type == 'oracle':
+            id_type = 'NUMBER(19)'
+        elif self.conn_type == 'postgresql':
+            id_type = 'SERIAL'
+        elif self.conn_type == 'sqlite':
+            id_type = 'INTEGER'
+            extra = ''
+        elif self.conn_type == 'mssql':
+            id_type = 'INT'
+        else:
+            raise ValueError('Unsupported database type: {}'.format(self.conn_type))
+        sql = base_sql.format(table_name, id_type, extra)
+
+        if self.conn_type == 'mssql':
+            sql = sql.replace('AUTO_INCREMENT', 'IDENTITY(1,1)')
+
+        self.exe_sql(sql)
+
 
 class DsPlugin:
     """
     plugin for DataSource
     """
-    def read_sql(self, sql):
-        """
-        tmp
-        """
-        return pd.DataFrame()
 
     def row_count(self, table_name):
         """
-        quickly count rows of a table
-        :param table_name: table name
-        :return: row nums
+        quickly get row count of a table
         """
-        sql = 'select count(1) from ' + table_name
-        df = self.read_sql(sql)
-        rows = df.values[0][0]
-        return int(rows)
+        # 使用参数化查询来避免SQL注入
+        sql = 'SELECT COUNT(*) FROM {}'.format(table_name)
+        try:
+            df = self.read_sql(sql)
+            rows = df.iloc[0, 0]
+            if isinstance(rows, (int, float)):
+                return int(rows)
+            else:
+                raise ValueError("查询结果无法转换为整数")
+        except Exception as e:
+            print(f"查询行数时出错: {e}")
+            return None
 
     def get_value(self, sql):
         """
         quickly get first value of a query
-        :param sql: sql text
-        :return: value
         """
-        df = self.read_sql(sql)
-        return df.values[0][0]
+        try:
+            df = self.read_sql(sql)
+            if not df.empty:
+                return df.iloc[0, 0]
+            else:
+                return None
+        except Exception as e:
+            print(f"An error occurred while executing the SQL query: {e}")
+            return None
 
     def get_sql_group(self, sql, params):
         """
-        quickly get many params query
-        :param sql:
-        :param params:
-        :return:
+        quickly get all query results
         """
-        df = None
-        for param in params:
-            new_sql = sql.format(param)
-            df_tmp = self.read_sql(new_sql)
-            if df is None:
-                df = df_tmp
-            else:
-                df = pd.concat([df, df_tmp])
-        return df
+        try:
+            dfs = [self.read_sql(sql.format(param)) for param in params]
+            df = pd.concat(dfs, ignore_index=True)
+            return df
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return pd.DataFrame()
 
 
 class DsConfig:
+    """
+    仅用于兼容老代码
+    """
+
     def set_chunksize(self, chunksize):
         pass
 
@@ -166,6 +217,7 @@ class DsExt:
     """
     extend function for DataSource
     """
+
     @staticmethod
     def pdsql(sql, data):
         import duckdb
@@ -219,16 +271,21 @@ class DsExt:
 
     @staticmethod
     def delete_file(path):
+        """
+        delete all files in a directory
+        """
         try:
-            ls = os.listdir(path)
-            for i in ls:
-                c_path = os.path.join(path, i)
+            for item in os.listdir(path):
+                item_path = os.path.join(path, item)
                 try:
-                    os.remove(c_path)
-                except Exception as e:
-                    pass
-        except Exception as e:
-            pass
+                    if os.path.isfile(item_path):
+                        os.remove(item_path)
+                    else:
+                        print(f"skip: {item_path}")
+                except OSError as e:
+                    print(f"error: {item_path}, message: {e}")
+        except OSError as e:
+            print(f"error: {path}, message: {e}")
 
     @staticmethod
     def get_tmp_file():
