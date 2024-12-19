@@ -1,5 +1,7 @@
 import datetime
 import os
+import warnings
+
 import numpy as np
 import pandas as pd
 from pyqueen.io.excel import Excel
@@ -33,23 +35,28 @@ class DsLog:
         ]
         self.logger = None
 
-    @staticmethod
-    def __file_log(etl_log):
+    def __file_log(self, etl_log):
         """
         std logger for "file", save ds log to file
         :param etl_log: etl log
         :return:
         """
-        log_path = etl_log['py_path']
-        log_path = str(log_path).replace('.py', '.log')
+        if self.__log_path is None:
+            self.__log_path = etl_log['py_path']
+            self.__log_path = str(self.__log_path).replace('.py', '.log')
         info = '\n------------------------------------\n'
         for k, v in etl_log.items():
             info += str(k) + ': ' + str(v) + '\n'
         info += '\n------------------------------------\n'
-        with open(log_path, 'a+', encoding='utf-8') as f:
+        with open(self.__log_path, 'a+', encoding='utf-8') as f:
             f.write(info)
 
-    def set_logger(self, logger):
+    def __db_log(self, etl_log):
+        df = pd.DataFrame({k: [v] for k, v in etl_log.items()})
+        if not df.empty:
+            self.__ds_log.to_db(df, self.__tb_log)
+
+    def set_logger(self, logger, log_path=None, log_ds=None, log_tb=None):
         """
         reset logger for DataSource
         :param logger: a function
@@ -57,6 +64,15 @@ class DsLog:
         """
         if str(logger) == 'file':
             self.logger = self.__file_log
+            if log_path is None:
+                warnings.warn("using running script folder", PendingDeprecationWarning)
+            self.__log_path = log_path
+        elif str(logger) == 'db':
+            if log_ds is None or log_tb is None:
+                raise ValueError('please provide log_ds and log_tb')
+            self.logger = self.__db_log
+            self.__ds_log = log_ds
+            self.__tb_log = log_tb
         else:
             self.logger = logger
 
@@ -67,7 +83,6 @@ class DsLog:
         """
         self.__t_start = datetime.datetime.now()
         import inspect
-        a = inspect.stack()[2]
         self.etl_log['start_time'] = str(self.__t_start.strftime('%Y-%m-%d %H:%M:%S'))
         self.etl_log['py_path'] = inspect.stack()[3].filename
         self.etl_log['func_name'] = inspect.stack()[2].function
@@ -94,22 +109,22 @@ class DsLog:
         create log table for DataSource
         """
         base_sql = """
-        CREATE TABLE IF NOT EXISTS {} (
-            `id` {} NOT NULL AUTO_INCREMENT,
-            `py_path` VARCHAR(500) DEFAULT '',
-            `func_name` VARCHAR(100) DEFAULT '',
-            `start_time` DATETIME DEFAULT NULL,
-            `end_time` DATETIME DEFAULT NULL,
-            `duration` INT DEFAULT NULL,
-            `message` VARCHAR(500) DEFAULT '',
-            `file_path` VARCHAR(500) DEFAULT '',
-            `sql_text` VARCHAR(500) DEFAULT '',
-            `host` VARCHAR(50) DEFAULT '',
-            `db_type` VARCHAR(20) DEFAULT '',
-            `port` VARCHAR(10) DEFAULT '',
-            `db_name` VARCHAR(50) DEFAULT '',
-            `table_name` VARCHAR(100) DEFAULT '',
-            PRIMARY KEY (`id`)
+        CREATE TABLE {} (
+            id {} NOT NULL AUTO_INCREMENT,
+            py_path VARCHAR(500) DEFAULT '',
+            func_name VARCHAR(100) DEFAULT '',
+            start_time DATETIME DEFAULT NULL,
+            end_time DATETIME DEFAULT NULL,
+            duration INT DEFAULT NULL,
+            message VARCHAR(500) DEFAULT '',
+            file_path VARCHAR(500) DEFAULT '',
+            sql_text VARCHAR(500) DEFAULT '',
+            host VARCHAR(50) DEFAULT '',
+            db_type VARCHAR(20) DEFAULT '',
+            port VARCHAR(10) DEFAULT '',
+            db_name VARCHAR(50) DEFAULT '',
+            table_name VARCHAR(100) DEFAULT '',
+            PRIMARY KEY (id)
         ) {}
         """
 
