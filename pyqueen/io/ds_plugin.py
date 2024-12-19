@@ -28,7 +28,7 @@ class DsLog:
             'file_path',
             'sql_text',
             'host',
-            'db_type',
+            'conn_type',
             'port',
             'db_name',
             'table_name'
@@ -56,7 +56,7 @@ class DsLog:
         if not df.empty:
             self.__ds_log.to_db(df, self.__tb_log)
 
-    def set_logger(self, logger, log_path=None, log_ds=None, log_tb=None):
+    def set_logger(self, logger, log_path=None, log_ds=None, log_tb=None,auto_create=False):
         """
         reset logger for DataSource
         :param logger: a function
@@ -73,6 +73,8 @@ class DsLog:
             self.logger = self.__db_log
             self.__ds_log = log_ds
             self.__tb_log = log_tb
+            if auto_create:
+                self.create_log_table(log_tb)
         else:
             self.logger = logger
 
@@ -111,45 +113,45 @@ class DsLog:
         base_sql = """
         CREATE TABLE {} (
             id {} NOT NULL AUTO_INCREMENT,
-            py_path VARCHAR(500) DEFAULT '',
-            func_name VARCHAR(100) DEFAULT '',
+            py_path VARCHAR(500) DEFAULT NULL,
+            func_name VARCHAR(100) DEFAULT NULL,
             start_time DATETIME DEFAULT NULL,
             end_time DATETIME DEFAULT NULL,
             duration INT DEFAULT NULL,
-            message VARCHAR(500) DEFAULT '',
-            file_path VARCHAR(500) DEFAULT '',
-            sql_text VARCHAR(500) DEFAULT '',
-            host VARCHAR(50) DEFAULT '',
-            db_type VARCHAR(20) DEFAULT '',
-            port VARCHAR(10) DEFAULT '',
-            db_name VARCHAR(50) DEFAULT '',
-            table_name VARCHAR(100) DEFAULT '',
+            message VARCHAR(500) DEFAULT NULL,
+            file_path VARCHAR(500) DEFAULT NULL,
+            sql_text VARCHAR(500) DEFAULT NULL,
+            host VARCHAR(50) DEFAULT NULL,
+            conn_type VARCHAR(20) DEFAULT NULL,
+            port VARCHAR(10) DEFAULT NULL,
+            db_name VARCHAR(50) DEFAULT NULL,
+            table_name VARCHAR(100) DEFAULT NULL,
             PRIMARY KEY (id)
         ) {}
         """
 
         id_type = ''
         extra = ''
-        if self.conn_type == 'mysql':
+        if self.__ds_log.conn_type == 'mysql':
             id_type = 'BIGINT UNSIGNED'
             extra = 'ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
-        elif self.conn_type == 'oracle':
+        elif self.__ds_log.conn_type == 'oracle':
             id_type = 'NUMBER(19)'
-        elif self.conn_type == 'postgresql':
+        elif self.__ds_log.conn_type == 'postgresql':
             id_type = 'SERIAL'
-        elif self.conn_type == 'sqlite':
+        elif self.__ds_log.conn_type == 'sqlite':
             id_type = 'INTEGER'
             extra = ''
-        elif self.conn_type == 'mssql':
+        elif self.__ds_log.conn_type == 'mssql':
             id_type = 'INT'
         else:
-            raise ValueError('Unsupported database type: {}'.format(self.conn_type))
+            raise ValueError('Unsupported database type: {}'.format(self.__ds_log.conn_type))
         sql = base_sql.format(table_name, id_type, extra)
 
-        if self.conn_type == 'mssql':
+        if self.__ds_log.conn_type == 'mssql':
             sql = sql.replace('AUTO_INCREMENT', 'IDENTITY(1,1)')
 
-        self.exe_sql(sql)
+        self.__ds_log.exe_sql(sql)
 
 
 class DsPlugin:
