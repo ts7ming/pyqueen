@@ -72,6 +72,7 @@ class DsLog:
                 raise ValueError('please provide log_ds and log_tb')
             self.logger = self.__db_log
             self.__ds_log = log_ds
+            self.__ds_log.logger = None # 避免循环引用
             self.__tb_log = log_tb
             if auto_create:
                 self.create_log_table(log_tb)
