@@ -48,8 +48,8 @@ class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
             warnings.warn("Recommend using the 'conn_type' field instead of 'db_type'", PendingDeprecationWarning)
             conn_type = db_type
 
-        conn_type = str(conn_type).lower()
-        self.operator_name = __conn_type_mapping__[conn_type]['class']
+        self.conn_type = str(conn_type).lower()
+        self.operator_name = __conn_type_mapping__[self.conn_type]['class']
 
         init_params = locals()
         del init_params['self']
@@ -69,21 +69,23 @@ class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
     def __run(self, log_field, **kwargs):
         func_name = inspect.currentframe().f_back.f_code.co_name
         func = getattr(self.operator, func_name)
-
-        if self.logger and log_field:
+        if self.logger is not None and log_field is not None:
             self.trace_start()
-            log_dict = {fd: str(kwargs.get(fd, getattr(self, fd, ''))).strip() for fd in log_field}
-            self.etl_log.update(log_dict)
-
-        req_params = set(inspect.signature(func).parameters.keys())
+            for fd in log_field:
+                fd_v = getattr(self, fd, None)
+                if fd_v is None and fd in kwargs.keys():
+                    fd_v = kwargs[fd]
+                else:
+                    continue
+                fd_v = str(fd_v).strip('\n').strip(' ')
+                if fd == 'sql':
+                    fd = 'sql_text'
+                self.etl_log[fd] = fd_v
+        req_params = list(inspect.signature(func).parameters.keys())
         run_param = {k: v for k, v in kwargs.items() if k in req_params}
-
         ret = func(**run_param)
-
-        # 结束日志追踪
-        if self.logger and log_field:
+        if self.logger is not None and log_field is not None:
             self.trace_end()
-
         return ret
 
     def set(self, param, val):
