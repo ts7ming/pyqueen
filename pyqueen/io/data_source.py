@@ -1,34 +1,37 @@
-import importlib
 import inspect
 import os
+import sys
 import warnings
 from pyqueen.io.ds_plugin import DsLog, DsPlugin, DsConfig, DsExt
-import sys
+from pyqueen.io.sqldb import *
+from pyqueen.io.kvdb import *
+from pyqueen.io.excel import *
+from pyqueen.io.ftp import *
+from pyqueen.io.web import *
+
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 warnings.simplefilter(action='always', category=PendingDeprecationWarning)
 
 __conn_type_mapping__ = {
-    'mysql': {'class': 'sqldb.MySQL'},
-    'oracle': {'class': 'sqldb.Oracle'},
-    'mssql': {'class': 'sqldb.MSSQL'},
-    'clickhouse': {'class': 'sqldb.Clickhouse'},
-    'pgsql': {'class': 'sqldb.PostgresSQL'},
-    'sqlite': {'class': 'sqldb.Sqlite'},
-    'jdbc': {'class': 'sqldb.SqlDB'},
-    'redis': {'class': 'kvdb.KvDB'},
-    'excel': {'class': 'excel.Excel'},
-    'ftp': {'class': 'ftp.Ftp'},
-    'web': {'class': 'web.Web'}
+    'mysql': MySQL,
+    'oracle': Oracle,
+    'mssql': MSSQL,
+    'clickhouse': Clickhouse,
+    'pgsql': PostgresSQL,
+    'sqlite': Sqlite,
+    'jdbc': SqlDB,
+    'redis': KvDB,
+    'excel': Excel,
+    'ftp': FTP,
+    'web': Web
 }
-
 __support_conn_type__ = tuple(__conn_type_mapping__.keys())
 
 
 class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
     def __init__(self,
-                 conn_type='excel',
+                 conn_type,
                  host=None,
                  username=None,
                  password=None,
@@ -44,27 +47,30 @@ class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
                  conn_params=None
                  ):
         super().__init__()
-        if db_type is not None and conn_type.lower() == 'excel':
+        self.conn_type = str(conn_type).lower()
+        self.__init_params = [host, username, password, port, db_name, file_path, jdbc_url, cache_dir, keep_conn, charset, conn_package, conn_params]
+        
+        if self.conn_type is None and db_type is None:
+            raise ValueError("conn_type must be specified")
+        
+        if self.conn_type not in __support_conn_type__:
+            raise ValueError(self.conn_type + " is not supported")
+
+        if db_type is not None and self.conn_type is None:
             warnings.warn("Recommend using the 'conn_type' field instead of 'db_type'", PendingDeprecationWarning)
-            conn_type = db_type
+            self.conn_type = db_type
 
         self.conn_type = str(conn_type).lower()
-        self.operator_name = __conn_type_mapping__[self.conn_type]['class']
-
-        init_params = locals()
-        del init_params['self']
-        if '__class__' in init_params:
-            del init_params['__class__']
-        self.__init_params = init_params
+        self.operator_class = __conn_type_mapping__[self.conn_type]
         self.__build_conn()
 
     def __build_conn(self):
-        operator_split = self.operator_name.split('.')
-        operator_module = importlib.import_module(str(operator_split[0]))
-        operator_class = getattr(operator_module, str(operator_split[1]))
-        req_params = inspect.signature(operator_class).parameters.keys()
+        req_params = inspect.signature(self.operator_class).parameters.keys()
         run_param = {k: self.__init_params[k] for k in req_params if self.__init_params[k] is not None}
-        self.operator = operator_class(**run_param)
+        self.operator = self.operator_class(**run_param)
+
+    def _get_engine(self):
+        return self.operator._get_engine()
 
     def __run(self, log_field, **kwargs):
         func_name = inspect.currentframe().f_back.f_code.co_name
