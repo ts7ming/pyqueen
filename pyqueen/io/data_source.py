@@ -2,7 +2,7 @@ import inspect
 import os
 import sys
 import warnings
-from pyqueen.io.ds_plugin import DsLog, DsPlugin, DsConfig, DsExt
+from pyqueen.io.ds_plugin import DsLog, DsPlugin, DsConfig, DsExt, DsSync
 from pyqueen.io.sqldb import *
 from pyqueen.io.kvdb import *
 from pyqueen.io.excel import *
@@ -29,7 +29,7 @@ __conn_type_mapping__ = {
 __support_conn_type__ = tuple(__conn_type_mapping__.keys())
 
 
-class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
+class DataSource(DsLog, DsPlugin, DsConfig, DsExt, DsSync):
     def __init__(self,
                  conn_type,
                  host=None,
