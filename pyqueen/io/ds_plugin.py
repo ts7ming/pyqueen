@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from pyqueen.io.excel import Excel
+from pyqueen.utility.time_kit import TimeKit
 
 
 class DsLog:
@@ -310,3 +311,68 @@ class DsExt:
         import tempfile
         _, file_path = tempfile.mkstemp()
         return file_path
+
+
+class DsSync:
+    """
+    sync function for DataSource
+    """
+
+    def __backup(self, ds, table_name):
+        ts = str(TimeKit().now)
+        bk_table_name = table_name+"_"+ts
+        if self.conn_type in ('mysql','pgsql','sqlite'):
+            ds.exe_sql(f"CREATE TABLE {bk_table_name} AS SELECT * FROM {table_name}")
+        elif self.conn_type == 'mssql':
+            ds.exe_sql(f"SELECT * INTO {bk_table_name} FROM {table_name}")
+        elif self.conn_type == 'oracle':
+            ds.exe_sql(f"CREATE TABLE {bk_table_name} AS SELECT * FROM {table_name} WHERE 1=2")
+            ds.exe_sql(f"INSERT INTO {bk_table_name} SELECT * FROM {table_name}")
+        else:
+            raise Exception("暂不支持该数据库类型")
+
+
+    def to_ds(self, ds_target, table_list:list, conf:dict=None, truncate=True, backup=True, tb_rename:dict=None, col_rename:dict=None):
+        """
+        将当前数据源的数据导入到目标数据源
+
+        :param ds_target: 目标数据源
+        :param table_list: 表名列表
+        :param conf: 配置信息, 可以指定每个表的配置信息, 包括: backup, truncate, col_rename. 配置信息的优先级高于全局配置
+        :param truncate: 是否清空目标表, 默认True
+        :param backup: 是否备份目标表, 默认True
+        :param tb_rename: 表名映射, 可以指定每个表的映射关系, 包括: old_tb_name: new_tb_name
+        :param col_rename: 列名映射, 可以指定每个表的映射关系, 包括: old_col_name: new_col_name
+
+        conf_example = {
+            'table_name1':{
+                'backup': False,
+                'truncate': True,
+                'col_rename': {'old_col_name': 'new_col_name'}
+            },
+            'table_name2':{
+                'backup': True,
+                'truncate': False,
+                'col_rename': {'old_col_name': 'new_col_name'}
+            }
+        }
+        """
+        for tb in table_list:
+            df = self.read_sql(f"select * from {tb}")
+            if conf is not None and tb in conf:
+                tb_conf = conf[tb]
+                if 'backup' in tb_conf:
+                    backup = tb_conf['backup']
+                if 'truncate' in tb_conf:
+                    truncate = tb_conf['truncate']
+                if 'col_rename' in tb_conf:
+                    col_rename = tb_conf['col_rename']
+            if backup:
+                self.__backup(ds_target,tb)
+            if truncate:
+                ds_target.exe_sql("truncate table {}".format(tb))
+            if col_rename is not None:
+                df.rename(columns=col_rename,inplace=True)
+            if tb_rename is not None and tb in tb_rename:
+                tb = tb_rename[tb]
+            ds_target.to_db(df, tb)
