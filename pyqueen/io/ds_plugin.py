@@ -158,7 +158,7 @@ class DsLog:
 
 class DsPlugin:
     """
-    plugin for DataSource
+    基于DataSource的插件
     """
 
     def row_count(self, table_name):
@@ -178,6 +178,7 @@ class DsPlugin:
             print(f"查询行数时出错: {e}")
             return None
 
+
     def get_value(self, sql):
         """
         quickly get first value of a query
@@ -192,6 +193,7 @@ class DsPlugin:
             print(f"An error occurred while executing the SQL query: {e}")
             return None
 
+
     def get_sql_group(self, sql, params):
         """
         quickly get all query results
@@ -205,38 +207,6 @@ class DsPlugin:
             return pd.DataFrame()
 
 
-class DsConfig:
-    """
-    仅用于兼容老代码
-    """
-
-    def set_chunksize(self, chunksize):
-        pass
-
-    def set_charset(self, charset):
-        pass
-
-    def set_package(self, package_name):
-        pass
-
-    def set_cache_dir(self, cache_dir):
-        pass
-
-    def set_url(self, url):
-        pass
-
-    def keep_conn(self):
-        pass
-
-    def close_conn(self):
-        pass
-
-
-class DsExt:
-    """
-    extend function for DataSource
-    """
-
     @staticmethod
     def pdsql(sql, data):
         import duckdb
@@ -245,6 +215,7 @@ class DsExt:
                 conn.register(df_name, df)
             result = conn.execute(sql).df()
         return result
+
 
     @staticmethod
     def to_image(df, file_path=None, col_width=None, font_size=None):
@@ -288,6 +259,7 @@ class DsExt:
         plt.savefig(file_path, dpi=600, bbox_inches='tight')
         return file_path
 
+
     @staticmethod
     def delete_file(path):
         """
@@ -306,17 +278,13 @@ class DsExt:
         except OSError as e:
             print(f"error: {path}, message: {e}")
 
+
     @staticmethod
     def get_tmp_file():
         import tempfile
         _, file_path = tempfile.mkstemp()
         return file_path
-
-
-class DsSync:
-    """
-    sync function for DataSource
-    """
+    
 
     def __backup(self, ds, table_name):
         ts = str(TimeKit().now)
@@ -332,7 +300,7 @@ class DsSync:
             raise Exception("暂不支持该数据库类型")
 
 
-    def to_ds(self, ds_target, table_list:list, conf:dict=None, truncate=True, backup=True, tb_rename:dict=None, col_rename:dict=None):
+    def sync_to_ds(self, ds_target, table_list:list, conf:dict=None, truncate=True, backup=True, tb_rename:dict=None, col_rename:dict=None):
         """
         将当前数据源的数据导入到目标数据源
 
@@ -357,6 +325,8 @@ class DsSync:
             }
         }
         """
+        if ds_target.conn_type not in ('mysql','pgsql','sqlite','mssql','oracle'):
+            raise Exception("暂不支持该数据库类型")
         for tb in table_list:
             df = self.read_sql(f"select * from {tb}")
             if conf is not None and tb in conf:
@@ -376,3 +346,34 @@ class DsSync:
             if tb_rename is not None and tb in tb_rename:
                 tb = tb_rename[tb]
             ds_target.to_db(df, tb)
+
+
+class DsConfig:
+    """
+    仅用于兼容老代码
+    """
+
+    def set_chunksize(self, chunksize):
+        pass
+
+    def set_charset(self, charset):
+        pass
+
+    def set_package(self, package_name):
+        pass
+
+    def set_cache_dir(self, cache_dir):
+        pass
+
+    def set_url(self, url):
+        pass
+
+    def keep_conn(self):
+        pass
+
+    def close_conn(self):
+        pass
+
+
+
+
