@@ -348,6 +348,18 @@ class DsPlugin:
             ds_target.to_db(df, tb)
 
 
+    def generate_ddl(self, base):
+        print('kaishi')
+        engine = self._get_engine()
+        from sqlalchemy.schema import CreateTable
+        ddl_statements = []
+        for table_name in base.metadata.tables:
+            table = base.metadata.tables[table_name]
+            ddl = str(CreateTable(table).compile(engine))
+            ddl_statements.append(ddl)
+        return ddl_statements
+
+
 class DsConfig:
     """
     仅用于兼容老代码
