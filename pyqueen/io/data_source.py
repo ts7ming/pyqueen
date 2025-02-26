@@ -66,7 +66,7 @@ class DataSource(DsLog, DsPlugin, DsConfig):
 
     def __build_conn(self):
         req_params = inspect.signature(self.operator_class).parameters.keys()
-        run_param = {k: self.__init_params[k] for k in req_params if self.__init_params[k] is not None}
+        run_param = {k: self.__init_params[k] for k in req_params if k in self.__init_params and self.__init_params[k] is not None}
         self.operator = self.operator_class(**run_param)
 
     def _get_engine(self):
@@ -227,3 +227,6 @@ class DataSource(DsLog, DsPlugin, DsConfig):
         log_field = None
         ret = self.__run(log_field=log_field, url=url)
         return ret
+
+    def g(self):
+        print('g')
