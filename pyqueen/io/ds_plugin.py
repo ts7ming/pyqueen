@@ -349,7 +349,7 @@ class DsPlugin:
 
 
     def generate_ddl(self, base):
-        print('kaishi')
+        self._create_conn()
         engine = self._get_engine()
         from sqlalchemy.schema import CreateTable
         ddl_statements = []
@@ -357,6 +357,7 @@ class DsPlugin:
             table = base.metadata.tables[table_name]
             ddl = str(CreateTable(table).compile(engine))
             ddl_statements.append(ddl)
+        self._close_conn()
         return ddl_statements
 
 
