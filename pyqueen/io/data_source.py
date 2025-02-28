@@ -48,7 +48,7 @@ class DataSource(DsLog, DsPlugin, DsConfig):
                  ):
         super().__init__()
         self.conn_type = str(conn_type).lower()
-        self.__init_params = [host, username, password, port, db_name, file_path, jdbc_url, cache_dir, keep_conn, charset, conn_package, conn_params]
+        self.__init_params = {k: v for k, v in locals().items()}
         
         if self.conn_type is None and db_type is None:
             raise ValueError("conn_type must be specified")
@@ -71,6 +71,18 @@ class DataSource(DsLog, DsPlugin, DsConfig):
 
     def _get_engine(self):
         return self.operator._get_engine()
+    
+    def _create_conn(self):
+        try:
+            self.operator.create_conn()
+        except Exception as e:
+            print(e)
+
+    def _close_conn(self):
+        try:
+            self.operator.close_conn()
+        except Exception as e:
+            print(e)
 
     def __run(self, log_field, **kwargs):
         func_name = inspect.currentframe().f_back.f_code.co_name
@@ -227,6 +239,3 @@ class DataSource(DsLog, DsPlugin, DsConfig):
         log_field = None
         ret = self.__run(log_field=log_field, url=url)
         return ret
-
-    def g(self):
-        print('g')

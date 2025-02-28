@@ -1,5 +1,5 @@
 import sys
-from pyqueen.utility.utils import Utils
+from .utils import Utils
 
 doc = '''
   ____         ___                        
