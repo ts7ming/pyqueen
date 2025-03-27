@@ -180,10 +180,7 @@ class TimeKit:
         if len(time_value) == 8:
             return time_value[0:4] + sep + time_value[4:6] + sep + time_value[6:8]
         elif len(time_value) == 14:
-            return time_value[0:4] + sep + time_value[4:6] + sep + time_value[6:8] + ' ' + time_value[
-                                                                                           8:10] + ':' + time_value[
-                                                                                                         10:12] + ':' + time_value[
-                                                                                                                        12:14]
+            return time_value[0:4] + sep + time_value[4:6] + sep + time_value[6:8] + ' ' + time_value[8:10] + ':' + time_value[10:12] + ':' + time_value[12:14]
         else:
             return None
 

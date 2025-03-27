@@ -10,14 +10,13 @@ import base64
 import urllib.parse
 
 
-
 class Dingtalk:
     def __init__(self, access_token, secret=None, corpid=None, corpsecret=None):
         self.header = {"Content-Type": "application/json"}
         self.access_token = access_token
         self.secret = secret
         self.corpid = corpid
-        self.corpidsecret = corpsecret
+        self.corpsecret = corpsecret
         self.msg = {}
         self.url = self.__get_url()
 
@@ -34,14 +33,12 @@ class Dingtalk:
         url = "https://oapi.dingtalk.com/robot/send?access_token={a}&timestamp={t}&sign={s}".format(a=self.access_token, t=timestamp, s=sign)
         return url
 
-
     def __getToken(self):
         url = 'https://oapi.dingtalk.com/gettoken?corpid=%s&corpsecret=%s' % (self.corpid, self.corpsecret)
         req = requests.get(url)
         access_token = json.loads(req.text)
         access_token = access_token['access_token']
         return access_token
-
 
     def send_text(self, content, mentioned_list=None, mentioned_mobile_list=None):
         """
@@ -69,7 +66,6 @@ class Dingtalk:
         except Exception as ee:
             raise Exception('钉钉发送失败：%s' % ee)
 
-
     def send(self, content=None, mentioned_list=None, mentioned_mobile_lis=None, file_path=None, img_path=None):
         if content is not None:
             if mentioned_list is None:
@@ -87,7 +83,6 @@ class Dingtalk:
             with open(img_path, "rb") as f:
                 image_data = str(base64.b64encode(f.read()), 'utf-8')
             self.send_image(image_data, image_md5)
-
 
     def send_image(self, base64, md5):
         """
@@ -110,7 +105,6 @@ class Dingtalk:
         except Exception as ee:
             raise Exception('钉钉发送失败：%s' % ee)
 
-
     def send_file(self, file_path):
         """
         文件类型
@@ -132,12 +126,12 @@ class Dingtalk:
         encode_data = encode_multipart_formdata(file_data)
         file_data = encode_data[0]
         headers['Content-Type'] = encode_data[1]
-        upload_res = json.loads(requests.post(url=upload_url, data=file_data,headers=headers).text)
+        upload_res = json.loads(requests.post(url=upload_url, data=file_data, headers=headers).text)
         # upload_res = json.loads(requests.post(url=upload_url, data=file_data).text)
         print(upload_res)
         self.msg['type'] = 'file'
         self.msg['file'] = {}
         self.msg['file']['media_id'] = upload_res['media_id']
-        res = json.loads(requests.post(url=self.url,data=json.dumps(self.msg),headers=self.header).text)
+        res = json.loads(requests.post(url=self.url, data=json.dumps(self.msg), headers=self.header).text)
         if res['errmsg'] != 'ok':
             raise Exception('钉钉发送失败')
