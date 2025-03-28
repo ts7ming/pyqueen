@@ -9,6 +9,7 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/ts7ming/pyqueen)
 ![GitHub forks](https://img.shields.io/github/forks/ts7ming/pyqueen)
 [![PyPI downloads](https://img.shields.io/pypi/dm/pyqueen.svg)](https://pypistats.org/packages/pyqueen)
+[![PyPI Downloads](https://static.pepy.tech/badge/pyqueen)](https://pepy.tech/projects/pyqueen)
 
 PyQueen is a data development toolkit that can build ETL workflows
 
