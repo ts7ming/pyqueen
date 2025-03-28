@@ -47,6 +47,7 @@ class DataSource(DsLog, DsPlugin, DsConfig):
                  conn_params=None
                  ):
         super().__init__()
+        self.auto_server_id = '[' + username + ']@['+str(host)+']:['+str(port)+']'
         self.conn_type = str(conn_type).lower()
         self.__init_params = {k: v for k, v in locals().items()}
         
