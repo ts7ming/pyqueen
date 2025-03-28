@@ -9,6 +9,7 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/ts7ming/pyqueen)
 ![GitHub forks](https://img.shields.io/github/forks/ts7ming/pyqueen)
 [![PyPI downloads](https://img.shields.io/pypi/dm/pyqueen.svg)](https://pypistats.org/packages/pyqueen)
+[![PyPI Downloads](https://static.pepy.tech/badge/pyqueen)](https://pepy.tech/projects/pyqueen)
 
 PyQueen is a data development toolkit that can build ETL workflows
 
@@ -110,6 +111,10 @@ pyqueen.DataSource: read and write databases and other datasource
 
 - set_logger([logger])
     - logger: option, default None, use 'file', or customer function
+    - log_path: when logger = 'file', log file path
+    - log_ds: when logger = 'db' DataSource to save log
+    - log_tb: when logger = 'db' log table name
+    - server_id: when logger = 'db' code for server.  when None `'[' + username + ']@['+str(host)+']:['+str(port)+']'`
 
 - row_count(table_name):
 

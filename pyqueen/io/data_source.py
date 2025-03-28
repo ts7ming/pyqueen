@@ -1,51 +1,89 @@
-import importlib
 import inspect
 import os
-import warnings
-from pyqueen.io.ds_plugin import DsLog, DsPlugin, DsConfig, DsExt
 import sys
+import warnings
+from pyqueen.io.ds_plugin import DsLog, DsPlugin, DsConfig
+from pyqueen.io.sqldb import *
+from pyqueen.io.kvdb import *
+from pyqueen.io.excel import *
+from pyqueen.io.ftp import *
+from pyqueen.io.web import *
+
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 warnings.simplefilter(action='always', category=PendingDeprecationWarning)
 
 __conn_type_mapping__ = {
-    'mysql': {'class': 'sqldb.MySQL'},
-    'oracle': {'class': 'sqldb.Oracle'},
-    'mssql': {'class': 'sqldb.MSSQL'},
-    'clickhouse': {'class': 'sqldb.Clickhouse'},
-    'pgsql': {'class': 'sqldb.PostgresSQL'},
-    'sqlite': {'class': 'sqldb.Sqlite'},
-    'jdbc': {'class': 'sqldb.SqlDB'},
-    'redis': {'class': 'kvdb.KvDB'},
-    'excel': {'class': 'excel.Excel'},
-    'ftp': {'class': 'ftp.Ftp'},
-    'web': {'class': 'web.Web'}
+    'mysql': MySQL,
+    'oracle': Oracle,
+    'mssql': MSSQL,
+    'clickhouse': Clickhouse,
+    'pgsql': PostgresSQL,
+    'sqlite': Sqlite,
+    'jdbc': SqlDB,
+    'redis': KvDB,
+    'excel': Excel,
+    'ftp': FTP,
+    'web': Web
 }
-
 __support_conn_type__ = tuple(__conn_type_mapping__.keys())
 
 
-class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
-    def __init__(self, conn_type='excel', host=None, username=None, password=None, port=None, db_name=None, db_type=None, file_path=None, jdbc_url=None,
-                 cache_dir=None, keep_conn=False, charset=None, conn_package=None, conn_params=None):
+class DataSource(DsLog, DsPlugin, DsConfig):
+    def __init__(self,
+                 conn_type,
+                 host=None,
+                 username=None,
+                 password=None,
+                 port=None,
+                 db_name=None,
+                 db_type=None,
+                 file_path=None,
+                 jdbc_url=None,
+                 cache_dir=None,
+                 keep_conn=False,
+                 charset=None,
+                 conn_package=None,
+                 conn_params=None
+                 ):
         super().__init__()
-        if db_type is not None and conn_type == 'excel':
-            warnings.warn(message="recommend using the 'conn_type' field instead of 'db_type'", category=PendingDeprecationWarning)
-            conn_type = db_type
-        conn_type = str(conn_type).lower()
-        self.operator_name = __conn_type_mapping__[conn_type]['class']
+        self.auto_server_id = '[' + username + ']@['+str(host)+']:['+str(port)+']'
+        self.conn_type = str(conn_type).lower()
         self.__init_params = {k: v for k, v in locals().items()}
-        self.__init_params['conn_type'] = conn_type
+        
+        if self.conn_type is None and db_type is None:
+            raise ValueError("conn_type must be specified")
+        
+        if self.conn_type not in __support_conn_type__:
+            raise ValueError(self.conn_type + " is not supported")
+
+        if db_type is not None and self.conn_type is None:
+            warnings.warn("Recommend using the 'conn_type' field instead of 'db_type'", PendingDeprecationWarning)
+            self.conn_type = db_type
+
+        self.conn_type = str(conn_type).lower()
+        self.operator_class = __conn_type_mapping__[self.conn_type]
         self.__build_conn()
 
     def __build_conn(self):
-        operator_split = self.operator_name.split('.')
-        operator_module = importlib.import_module(str(operator_split[0]))
-        operator_class = getattr(operator_module, str(operator_split[1]))
-        req_params = list(inspect.signature(operator_class).parameters.keys())
-        run_param = {k: self.__init_params[k] for k in req_params if self.__init_params[k] is not None}
-        self.operator = operator_class(**run_param)
+        req_params = inspect.signature(self.operator_class).parameters.keys()
+        run_param = {k: self.__init_params[k] for k in req_params if k in self.__init_params and self.__init_params[k] is not None}
+        self.operator = self.operator_class(**run_param)
+
+    def _get_engine(self):
+        return self.operator._get_engine()
+    
+    def _create_conn(self):
+        try:
+            self.operator.create_conn()
+        except Exception as e:
+            print(e)
+
+    def _close_conn(self):
+        try:
+            self.operator.close_conn()
+        except Exception as e:
+            print(e)
 
     def __run(self, log_field, **kwargs):
         func_name = inspect.currentframe().f_back.f_code.co_name
@@ -59,6 +97,8 @@ class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
                 else:
                     continue
                 fd_v = str(fd_v).strip('\n').strip(' ')
+                if fd == 'sql':
+                    fd = 'sql_text'
                 self.etl_log[fd] = fd_v
         req_params = list(inspect.signature(func).parameters.keys())
         run_param = {k: v for k, v in kwargs.items() if k in req_params}
@@ -67,14 +107,23 @@ class DataSource(DsLog, DsPlugin, DsConfig, DsExt):
             self.trace_end()
         return ret
 
+    def set(self, param, val):
+        """
+        set parameter for this datasource
+        :param param: parameter name
+        :param val: parameter value
+        :return:
+        """
+        self.__init_params[param] = val
+        self.__build_conn()
+
     def set_db(self, db_name):
         """
         reset current database
         :param db_name: database name
         :return:
         """
-        self.__init_params['db_name'] = db_name
-        self.__build_conn()
+        self.set('db_name', db_name)
 
     def get_sql(self, sql):
         """
