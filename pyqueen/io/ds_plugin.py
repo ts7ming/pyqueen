@@ -28,13 +28,13 @@ class DsLog:
             'message',
             'file_path',
             'sql_text',
-            'host',
-            'conn_type',
-            'port',
+            'server_id',
             'db_name',
             'table_name'
         ]
         self.logger = None
+        self.__server_id = None
+
 
     def __file_log(self, etl_log):
         """
@@ -57,7 +57,7 @@ class DsLog:
         if not df.empty:
             self.__ds_log.to_db(df, self.__tb_log)
 
-    def set_logger(self, logger, log_path=None, log_ds=None, log_tb=None,auto_create=False):
+    def set_logger(self, logger, log_path=None, log_ds=None, log_tb=None,auto_create=False, server_id=None):
         """
         reset logger for DataSource
         :param logger: a function
@@ -79,6 +79,10 @@ class DsLog:
                 self.create_log_table(log_tb)
         else:
             self.logger = logger
+        if server_id is not None:
+            self.__server_id = server_id
+        else:
+            self.__server_id = self.auto_server_id
 
     def trace_start(self):
         """
@@ -90,6 +94,7 @@ class DsLog:
         self.etl_log['start_time'] = str(self.__t_start.strftime('%Y-%m-%d %H:%M:%S'))
         self.etl_log['py_path'] = inspect.stack()[3].filename
         self.etl_log['func_name'] = inspect.stack()[2].function
+        self.etl_log['server_id'] = self.__server_id
 
     def trace_end(self):
         """
@@ -123,9 +128,7 @@ class DsLog:
             message VARCHAR(500) DEFAULT NULL,
             file_path VARCHAR(500) DEFAULT NULL,
             sql_text VARCHAR(500) DEFAULT NULL,
-            host VARCHAR(50) DEFAULT NULL,
-            conn_type VARCHAR(20) DEFAULT NULL,
-            port VARCHAR(10) DEFAULT NULL,
+            server_id VARCHAR(200) DEFAULT NULL,
             db_name VARCHAR(50) DEFAULT NULL,
             table_name VARCHAR(100) DEFAULT NULL,
             PRIMARY KEY (id)
