@@ -2,26 +2,38 @@ import os
 from sqlalchemy import create_engine, text
 import pandas as pd
 import inspect
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urlencode
+
 
 class SqlDB:
-    def __init__(self, conn_package=None, db_type=None, host=None, username=None, password=None, port=None, db_name=None, jdbc_url=None,
-                 keep_conn=False, conn_params=None):
-        if password is None:
-            password = ''
+    def __init__(self,
+                 conn_package=None,
+                 db_type=None,
+                 host=None,
+                 username=None,
+                 password=None,
+                 port=None,
+                 db_name=None,
+                 jdbc_url=None,
+                 keep_conn=False,
+                 conn_params=None
+                 ):
+        password = password if password is not None else ''
         self.__conn = None
         self.__engine = None
+
         self.__base_param = {
             'db_type': db_type,
-            'package': str(conn_package),
-            'username': str(username),
+            'package': conn_package,
+            'username': username,
             'password': quote_plus(password),
-            'host': str(host),
-            'port': str(port),
-            'db_name': str(db_name),
+            'host': host,
+            'port': port,
+            'db_name': db_name,
         }
+
         self.__url = jdbc_url
-        self.__ext_param = None
+        self.__ext_param = {}
         self.__conn_params = conn_params
         self.__keep_conn = keep_conn
 
@@ -36,22 +48,24 @@ class SqlDB:
 
     def __build_url(self):
         if self.__url is None:
-            self.__url = '{db_type}+{package}://{username}:{password}@{host}:{port}/{db_name}'
-            self.__url = self.__url.format(**self.__base_param)
-            not_first_param = False
-            if self.__ext_param is not None and len(self.__ext_param.keys()) > 0:
-                self.__url = self.__url + '?'
-                for pk, pv in self.__ext_param.items():
-                    if not_first_param:
-                        pk = '&' + pk
-                    self.__url = self.__url + pk + '=' + pv
-                    not_first_param = True
+            base_url = f"{self.__base_param['db_type']}+{self.__base_param['package']}://{self.__base_param['username']}:{self.__base_param['password']}@{self.__base_param['host']}:{self.__base_param['port']}/{self.__base_param['db_name']}"
+            if self.__ext_param:
+                query_params = urlencode(self.__ext_param)
+                self.__url = f"{base_url}?{query_params}"
+            else:
+                self.__url = base_url
 
     def create_conn(self):
-        if self.__keep_conn is False or self.__conn is None:
+        if not self.__keep_conn or self.__conn is None:
             self.__build_url()
-            self.__engine = create_engine(self.__url)
-            self.__conn = self.__engine.connect()
+            try:
+                self.__engine = create_engine(self.__url)
+                self.__conn = self.__engine.connect()
+            except Exception as e:
+                raise Exception(f"无法创建数据库连接: {e}")
+
+    def _get_engine(self):
+        return self.__engine
 
     def close_conn(self, engine=None, conn=None):
         if self.__keep_conn is False:
@@ -91,35 +105,35 @@ class SqlDB:
             self.close_conn()
 
     def exe_sql(self, sql, auto_commit=False):
-        if auto_commit:
-            self.__build_url()
-            engine = create_engine(self.__url)
-            engine = engine.execution_options(isolation_level="AUTOCOMMIT")
-            conn = engine.connect()
-        else:
-            self.create_conn()
-            engine = self.__engine
-            conn = self.__conn
+        def execute_statements(connection, statements):
+            for sql_text in statements:
+                sql_text = text(sql_text)
+                connection.execute(sql_text)
+                connection.commit()
 
-        if isinstance(sql, list):
-            try:
-                for sql_text in sql:
-                    sql_text = text(sql_text)
-                    conn.execute(sql_text)
-                    conn.commit()
-            except Exception as e:
-                raise Exception('执行sql出错: ' + str(e)[0:500])
-            finally:
-                self.close_conn(engine=engine, conn=conn)
-        else:
-            sql = text(sql)
-            try:
-                conn.execute(sql)
-                conn.commit()
-            except Exception as e:
-                raise Exception('执行sql出错: ' + str(e)[0:500])
-            finally:
-                self.close_conn(engine=engine, conn=conn)
+        try:
+            if auto_commit:
+                self.__build_url()
+                with create_engine(self.__url).connect() as conn:
+                    conn = conn.execution_options(isolation_level="AUTOCOMMIT")
+                    if isinstance(sql, list):
+                        execute_statements(conn, sql)
+                    else:
+                        conn.execute(text(sql))
+                        conn.commit()
+            else:
+                self.create_conn()
+                try:
+                    if isinstance(sql, list):
+                        execute_statements(self.__conn, sql)
+                    else:
+                        self.__conn.execute(text(sql))
+                        self.__conn.commit()
+                finally:
+                    if not self.__keep_conn:
+                        self.close_conn()
+        except Exception as e:
+            raise Exception(f'执行sql出错: {e}')
 
     @staticmethod
     def get_tmp_file():
@@ -152,16 +166,20 @@ class MySQL(SqlDB):
     def to_db(self, df, tb_name, how, chunksize, fast_load):
         if fast_load:
             super().set_ext_param(charset=self.__charset, local_infile='1')
-            file = self.get_tmp_file()
-            df.to_csv(file, index=False, quoting=1)
-            sql = '''
-                LOAD DATA LOCAL INFILE '%s' INTO TABLE %s Fields Terminated By ',' Enclosed By '"' IGNORE 1 LINES;
-            ''' % (file, tb_name)
-            self.exe_sql(sql)
+            tmp_file_path = self.get_tmp_file()
             try:
-                os.unlink(file)
+                df.to_csv(tmp_file_path, index=False, quoting=1)
+                sql = f'''
+                    LOAD DATA LOCAL INFILE '{tmp_file_path}' INTO TABLE {tb_name} Fields Terminated By ',' Enclosed By '"' IGNORE 1 LINES;
+                '''
+                self.exe_sql(sql)
             except Exception as e:
-                print('failed to delete file: ' + file + '   ' + str(e)[0:100])
+                raise Exception(f'Failed to load data into table {tb_name} using fast_load: {e}')
+            finally:
+                try:
+                    os.unlink(tmp_file_path)
+                except Exception as e:
+                    print(f'Failed to delete temporary file: {e}')
         else:
             super().to_db(df=df, tb_name=tb_name, how=how, chunksize=chunksize)
 

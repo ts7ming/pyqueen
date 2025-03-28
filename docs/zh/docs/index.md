@@ -9,6 +9,7 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/ts7ming/pyqueen)
 ![GitHub forks](https://img.shields.io/github/forks/ts7ming/pyqueen)
 [![PyPI downloads](https://img.shields.io/pypi/dm/pyqueen.svg)](https://pypistats.org/packages/pyqueen)
+[![PyPI Downloads](https://static.pepy.tech/badge/pyqueen)](https://pepy.tech/projects/pyqueen)
 
 PyQueen 是一个数据处理工具箱, 用于构建ETL工作流.
 
@@ -109,6 +110,12 @@ pyqueen.DataSource: 读写数据库, 文件和其他类型的数据源
 
 - set_logger([logger])
     - logger: 可选, 默认 None, 可使用预置的 'file', 也可以传入自定义函数
+    - log_path: 如果 logger = 'file' 可以指定日志文件, 否则自动写入当前目录下
+    - log_ds: 如果 logger = 'db' 指定用于保存日志的 DataSource 对象
+    - log_tb: 如果 logger = 'db' 指定用于保存日志的表名
+    - server_id: 如果 logger = 'db' 指定服务器id, 用于区分不同服务器的日志. 为None自动取 `'[' + username + ']@['+str(host)+']:['+str(port)+']'`
+
+
 
 - row_count(table_name): 统计表行数
 
