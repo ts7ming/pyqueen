@@ -47,7 +47,7 @@ class DataSource(DsLog, DsPlugin, DsConfig):
                  conn_params=None
                  ):
         super().__init__()
-        self.auto_server_id = '[' + username + ']@['+str(host)+']:['+str(port)+']'
+        self.auto_server_id = '[' + str(username) + ']@['+str(host)+']:['+str(port)+']'
         self.conn_type = str(conn_type).lower()
         self.__init_params = {k: v for k, v in locals().items()}
         
@@ -60,6 +60,10 @@ class DataSource(DsLog, DsPlugin, DsConfig):
         if db_type is not None and self.conn_type is None:
             warnings.warn("Recommend using the 'conn_type' field instead of 'db_type'", PendingDeprecationWarning)
             self.conn_type = db_type
+
+        if conn_type == 'sqlite' and host is not None and file_path is None:
+            self.__init_params['file_path'] = host
+
 
         self.conn_type = str(conn_type).lower()
         self.operator_class = __conn_type_mapping__[self.conn_type]
@@ -91,15 +95,20 @@ class DataSource(DsLog, DsPlugin, DsConfig):
         if self.logger is not None and log_field is not None:
             self.trace_start()
             for fd in log_field:
-                fd_v = getattr(self, fd, None)
-                if fd_v is None and fd in kwargs.keys():
+                fd_v = None
+                if fd in kwargs.keys():
                     fd_v = kwargs[fd]
+                elif fd in self.__init_params.keys():
+                    fd_v = self.__init_params[fd]
                 else:
                     continue
                 fd_v = str(fd_v).strip('\n').strip(' ')
                 if fd == 'sql':
                     fd = 'sql_text'
+                elif fd == 'tb_name':
+                    fd = 'table_name'
                 self.etl_log[fd] = fd_v
+                
         req_params = list(inspect.signature(func).parameters.keys())
         run_param = {k: v for k, v in kwargs.items() if k in req_params}
         ret = func(**run_param)
@@ -166,7 +175,7 @@ class DataSource(DsLog, DsPlugin, DsConfig):
         :param chunksize: chunksize
         :return:
         """
-        log_field = ['table_name', 'host', 'port', 'db_name', 'conn_type']
+        log_field = ['tb_name', 'host', 'port', 'db_name', 'conn_type']
         ret = self.__run(log_field=log_field, df=df, tb_name=tb_name, how=how, fast_load=fast_load, chunksize=chunksize)
         return ret
 
