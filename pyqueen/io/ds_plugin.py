@@ -352,15 +352,15 @@ class DsPlugin:
 
 
     def generate_ddl(self, base):
-        self._create_conn()
-        engine = self._get_engine()
+        self.create_conn()
+        engine = self.get_engine()
         from sqlalchemy.schema import CreateTable
         ddl_statements = []
         for table_name in base.metadata.tables:
             table = base.metadata.tables[table_name]
             ddl = str(CreateTable(table).compile(engine))
             ddl_statements.append(ddl)
-        self._close_conn()
+        self.close_conn()
         return ddl_statements
 
 

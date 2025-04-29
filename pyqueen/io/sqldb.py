@@ -64,8 +64,12 @@ class SqlDB:
             except Exception as e:
                 raise Exception(f"无法创建数据库连接: {e}")
 
-    def _get_engine(self):
+    def get_engine(self):
         return self.__engine
+    
+    def get_jdbc_url(self):
+        return self.__url
+
 
     def close_conn(self, engine=None, conn=None):
         if self.__keep_conn is False:

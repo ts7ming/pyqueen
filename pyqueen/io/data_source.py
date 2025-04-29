@@ -70,20 +70,27 @@ class DataSource(DsLog, DsPlugin, DsConfig):
         self.__build_conn()
 
     def __build_conn(self):
+        if self.conn_type == 'jdbc':
+            self.operator = self.operator_class(jdbc_url=self.__init_params['jdbc_url'])
+
+
         req_params = inspect.signature(self.operator_class).parameters.keys()
         run_param = {k: self.__init_params[k] for k in req_params if k in self.__init_params and self.__init_params[k] is not None}
         self.operator = self.operator_class(**run_param)
 
-    def _get_engine(self):
-        return self.operator._get_engine()
+    def get_engine(self):
+        return self.operator.get_engine()
     
-    def _create_conn(self):
+    def get_jdbc_url(self):
+        return self.operator.get_jdbc_url()
+    
+    def create_conn(self):
         try:
             self.operator.create_conn()
         except Exception as e:
             print(e)
 
-    def _close_conn(self):
+    def close_conn(self):
         try:
             self.operator.close_conn()
         except Exception as e:
