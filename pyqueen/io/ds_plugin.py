@@ -17,6 +17,7 @@ class DsLog:
         """
         Logger for DataSource
         """
+        self.__flow_log = None
         self.__t_start = None
         self.etl_log = {}
         self.__etl_param_sort = [
@@ -34,7 +35,6 @@ class DsLog:
         ]
         self.logger = None
         self.__server_id = None
-
 
     def __file_log(self, etl_log):
         """
@@ -57,7 +57,7 @@ class DsLog:
         if not df.empty:
             self.__ds_log.to_db(df, self.__tb_log)
 
-    def set_logger(self, logger, log_path=None, log_ds=None, log_tb=None,auto_create=False, server_id=None):
+    def set_logger(self, logger, log_path=None, log_ds=None, log_tb=None, auto_create=False, server_id=None):
         """
         reset logger for DataSource
         :param logger: a function
@@ -73,7 +73,7 @@ class DsLog:
                 raise ValueError('please provide log_ds and log_tb')
             self.logger = self.__db_log
             self.__ds_log = log_ds
-            self.__ds_log.logger = None # 避免循环引用
+            self.__ds_log.logger = None  # 避免循环引用
             self.__tb_log = log_tb
             if auto_create:
                 self.create_log_table(log_tb)
@@ -83,6 +83,16 @@ class DsLog:
             self.__server_id = server_id
         else:
             self.__server_id = self.auto_server_id
+
+    def __logger4flow(self, etl_log):
+        self.__flow_log.append(etl_log)
+
+    def record_flow_log(self):
+        self.__flow_log = []
+        self.set_logger(logger=self.__logger4flow)
+
+    def export_flow_log(self):
+        return self.__flow_log
 
     def trace_start(self):
         """
@@ -181,7 +191,6 @@ class DsPlugin:
             print(f"查询行数时出错: {e}")
             return None
 
-
     def get_value(self, sql):
         """
         quickly get first value of a query
@@ -196,7 +205,6 @@ class DsPlugin:
             print(f"An error occurred while executing the SQL query: {e}")
             return None
 
-
     def get_sql_group(self, sql, params):
         """
         quickly get all query results
@@ -209,7 +217,6 @@ class DsPlugin:
             print(f"An error occurred: {e}")
             return pd.DataFrame()
 
-
     @staticmethod
     def pdsql(sql, data):
         import duckdb
@@ -218,7 +225,6 @@ class DsPlugin:
                 conn.register(df_name, df)
             result = conn.execute(sql).df()
         return result
-
 
     @staticmethod
     def to_image(df, file_path=None, col_width=None, font_size=None):
@@ -262,7 +268,6 @@ class DsPlugin:
         plt.savefig(file_path, dpi=600, bbox_inches='tight')
         return file_path
 
-
     @staticmethod
     def delete_file(path):
         """
@@ -281,18 +286,16 @@ class DsPlugin:
         except OSError as e:
             print(f"error: {path}, message: {e}")
 
-
     @staticmethod
     def get_tmp_file():
         import tempfile
         _, file_path = tempfile.mkstemp()
         return file_path
-    
 
     def __backup(self, ds, table_name):
         ts = str(TimeKit().now)
-        bk_table_name = table_name+"_"+ts
-        if self.conn_type in ('mysql','pgsql','sqlite'):
+        bk_table_name = table_name + "_" + ts
+        if self.conn_type in ('mysql', 'pgsql', 'sqlite'):
             ds.exe_sql(f"CREATE TABLE {bk_table_name} AS SELECT * FROM {table_name}")
         elif self.conn_type == 'mssql':
             ds.exe_sql(f"SELECT * INTO {bk_table_name} FROM {table_name}")
@@ -302,8 +305,7 @@ class DsPlugin:
         else:
             raise Exception("暂不支持该数据库类型")
 
-
-    def sync_to_ds(self, ds_target, table_list:list, conf:dict=None, truncate=True, backup=True, tb_rename:dict=None, col_rename:dict=None):
+    def sync_to_ds(self, ds_target, table_list: list, conf: dict = None, truncate=True, backup=True, tb_rename: dict = None, col_rename: dict = None):
         """
         将当前数据源的数据导入到目标数据源
 
@@ -328,7 +330,7 @@ class DsPlugin:
             }
         }
         """
-        if ds_target.conn_type not in ('mysql','pgsql','sqlite','mssql','oracle'):
+        if ds_target.conn_type not in ('mysql', 'pgsql', 'sqlite', 'mssql', 'oracle'):
             raise Exception("暂不支持该数据库类型")
         for tb in table_list:
             df = self.read_sql(f"select * from {tb}")
@@ -341,15 +343,14 @@ class DsPlugin:
                 if 'col_rename' in tb_conf:
                     col_rename = tb_conf['col_rename']
             if backup:
-                self.__backup(ds_target,tb)
+                self.__backup(ds_target, tb)
             if truncate:
                 ds_target.exe_sql("truncate table {}".format(tb))
             if col_rename is not None:
-                df.rename(columns=col_rename,inplace=True)
+                df.rename(columns=col_rename, inplace=True)
             if tb_rename is not None and tb in tb_rename:
                 tb = tb_rename[tb]
             ds_target.to_db(df, tb)
-
 
     def generate_ddl(self, base):
         self._create_conn()
@@ -389,7 +390,3 @@ class DsConfig:
 
     def close_conn(self):
         pass
-
-
-
-
