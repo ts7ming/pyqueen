@@ -17,7 +17,7 @@ class DsLog:
         """
         Logger for DataSource
         """
-        self.__flow_log = None
+        self.__log = None
         self.__t_start = None
         self.etl_log = {}
         self.__etl_param_sort = [
@@ -85,14 +85,14 @@ class DsLog:
             self.__server_id = self.auto_server_id
 
     def __logger4flow(self, etl_log):
-        self.__flow_log.append(etl_log)
+        self.__log.append(etl_log)
 
-    def record_flow_log(self):
-        self.__flow_log = []
+    def record_log(self):
+        self.__log = []
         self.set_logger(logger=self.__logger4flow)
 
-    def export_flow_log(self):
-        return self.__flow_log
+    def export_log(self):
+        return self.__log
 
     def trace_start(self):
         """
