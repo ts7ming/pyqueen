@@ -17,6 +17,7 @@ class DsLog:
         """
         Logger for DataSource
         """
+        self.__ud_field_list = None
         self.__log = None
         self.__t_start = None
         self.etl_log = {}
@@ -85,10 +86,13 @@ class DsLog:
             self.__server_id = self.auto_server_id
 
     def __logger4flow(self, etl_log):
+        if self.__ud_field_list is not None:
+            etl_log = {k: v for k, v in etl_log.items() if k in self.__ud_field_list}
         self.__log.append(etl_log)
 
-    def record_log(self):
+    def record_log(self, field_list=None):
         self.__log = []
+        self.__ud_field_list = field_list
         self.set_logger(logger=self.__logger4flow)
 
     def export_log(self):
