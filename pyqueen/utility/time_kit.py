@@ -236,7 +236,7 @@ class TimeKit:
         self.today8 = str(today)
         self.today10 = self.str(today)
         self.yesterday8 = str(self.yesterday)
-        self.yesterday10 = self.str(self.yesterday6)
+        self.yesterday10 = self.str(self.today10)
         self.tomorrow8 = str(self.tomorrow)
         self.tomorrow10 = self.str(self.tomorrow)
 
