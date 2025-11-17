@@ -230,7 +230,6 @@ class TimeKit:
         self.second = int(str(self.thetime).zfill(6)[4:6])
 
         self.yesterday = self.time_delta(self.today, 'days', -1)
-        self.yesterday1 = self.time_delta(self.today, 'days', -2)
         self.tomorrow = self.time_delta(self.today, 'days', 1)
 
         self.today8 = str(today)
@@ -279,3 +278,18 @@ class TimeKit:
         lm2_end_date = lm_start_date - datetime.timedelta(days=1)
         self.lm2_start = self.date2int(lm2_start_date)
         self.lm2_end = self.date2int(lm2_end_date)
+
+# tk = TimeKit()
+
+
+# data = [
+#     tk.today8, 
+#     tk.today10, 
+#     tk.tomorrow8, 
+#     tk.tomorrow10, 
+#     tk.yesterday8,
+#     tk.yesterday10,
+#     tk.delta('days',-2, 8),
+#     tk.delta('days',5, 10)
+# ]
+# print(data)
