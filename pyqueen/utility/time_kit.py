@@ -85,13 +85,12 @@ class TimeKit:
         elif len(ts) == 14:
             return int(new_date.strftime('%Y%m%d%H%M%S'))
 
-    def delta(self, flag, value, short=True):
-        """
-        日期加减
-        """
+    def delta(self, flag, value, format=8):
         new_time = self.time_delta(self.now, flag, value)
-        if short:
-            return int(str(new_time)[0:8])
+        if format==8:
+            return str(new_time)[0:8]
+        elif format == 10:
+            return self.str(str(new_time)[0:8])
         else:
             return new_time
 
@@ -185,6 +184,17 @@ class TimeKit:
             return None
 
     @classmethod
+    def str(self, time_value, sep='-'):
+        """ int型时间转字符串 """
+        time_value = str(time_value)
+        if len(time_value) == 8:
+            return time_value[0:4] + sep + time_value[4:6] + sep + time_value[6:8]
+        elif len(time_value) == 14:
+            return time_value[0:4] + sep + time_value[4:6] + sep + time_value[6:8] + ' ' + time_value[8:10] + ':' + time_value[10:12] + ':' + time_value[12:14]
+        else:
+            return None
+        
+    @classmethod
     def date_div(self, start, end, num, by='groups'):
         """ 指定分段数 拆分时间段 """
         if by == 'ndays':
@@ -220,7 +230,15 @@ class TimeKit:
         self.second = int(str(self.thetime).zfill(6)[4:6])
 
         self.yesterday = self.time_delta(self.today, 'days', -1)
+        self.yesterday1 = self.time_delta(self.today, 'days', -2)
         self.tomorrow = self.time_delta(self.today, 'days', 1)
+
+        self.today8 = str(today)
+        self.today10 = self.str(today)
+        self.yesterday8 = str(self.yesterday)
+        self.yesterday10 = self.str(self.yesterday6)
+        self.tomorrow8 = str(self.tomorrow)
+        self.tomorrow10 = self.str(self.tomorrow)
 
         # 本周第几天  1-7 对应周一到周末
         nday_of_week = int(today_date.weekday()) + 1
@@ -261,3 +279,7 @@ class TimeKit:
         lm2_end_date = lm_start_date - datetime.timedelta(days=1)
         self.lm2_start = self.date2int(lm2_start_date)
         self.lm2_end = self.date2int(lm2_end_date)
+
+tk = TimeKit()
+
+print(tk.today6, tk.today8, tk.tomorrow6, tk.tomorrow8, tk.yesterday6, tk.yesterday8)
