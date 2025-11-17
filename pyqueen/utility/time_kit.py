@@ -279,7 +279,3 @@ class TimeKit:
         lm2_end_date = lm_start_date - datetime.timedelta(days=1)
         self.lm2_start = self.date2int(lm2_start_date)
         self.lm2_end = self.date2int(lm2_end_date)
-
-tk = TimeKit()
-
-print(tk.today6, tk.today8, tk.tomorrow6, tk.tomorrow8, tk.yesterday6, tk.yesterday8)
