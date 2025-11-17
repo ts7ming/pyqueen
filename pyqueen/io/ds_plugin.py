@@ -81,9 +81,7 @@ class DsLog:
         else:
             self.logger = logger
         if server_id is not None:
-            self.__server_id = server_id
-        else:
-            self.__server_id = self.auto_server_id
+            self.server_id = server_id
 
     def __logger4flow(self, etl_log):
         if self.__ud_field_list is not None:
@@ -108,7 +106,7 @@ class DsLog:
         self.etl_log['start_time'] = str(self.__t_start.strftime('%Y-%m-%d %H:%M:%S'))
         self.etl_log['py_path'] = inspect.stack()[3].filename
         self.etl_log['func_name'] = inspect.stack()[2].function
-        self.etl_log['server_id'] = self.__server_id
+        self.etl_log['server_id'] = self.server_id
 
     def trace_end(self):
         """

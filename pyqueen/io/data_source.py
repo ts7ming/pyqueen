@@ -44,10 +44,14 @@ class DataSource(DsLog, DsPlugin, DsConfig):
                  keep_conn=False,
                  charset=None,
                  conn_package=None,
-                 conn_params=None
+                 conn_params=None,
+                 server_id=None
                  ):
         super().__init__()
-        self.auto_server_id = '[' + str(username) + ']@['+str(host)+']:['+str(port)+']'
+        if server_id is None:
+            self.server_id = '[' + str(username) + ']@['+str(host)+']:['+str(port)+']/['+str(db_name)+']'
+        else:
+            self.server_id = server_id
         self.conn_type = str(conn_type).lower()
         self.__init_params = {k: v for k, v in locals().items()}
         
