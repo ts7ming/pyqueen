@@ -169,7 +169,7 @@ class DataSource(DsLog, DsPlugin, DsConfig):
         ret = self.__run(log_field=log_field, sql=sql, auto_commit=auto_commit)
         return ret
 
-    def to_db(self, df, tb_name, how='append', fast_load=False, chunksize=10000):
+    def to_db(self, df, tb_name, how='append', fast_load=False, chunksize=10000, schema=None, dtype=None):
         """
         write a pd.DataFrame to database
         :param df: df to write
@@ -180,7 +180,7 @@ class DataSource(DsLog, DsPlugin, DsConfig):
         :return:
         """
         log_field = ['tb_name', 'host', 'port', 'db_name', 'conn_type']
-        ret = self.__run(log_field=log_field, df=df, tb_name=tb_name, how=how, fast_load=fast_load, chunksize=chunksize)
+        ret = self.__run(log_field=log_field, df=df, tb_name=tb_name, how=how, fast_load=fast_load, chunksize=chunksize, schema=schema, dtype=dtype)
         return ret
 
     def get_v(self, key):

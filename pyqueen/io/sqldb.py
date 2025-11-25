@@ -94,11 +94,11 @@ class SqlDB:
             finally:
                 self.close_conn()
             return df
-
-    def to_db(self, df, tb_name, how, chunksize, fast_load=False):
+        
+    def to_db(self, df, tb_name, how, chunksize, fast_load=False, schema=None, dtype=None):
         self.create_conn()
         try:
-            df.to_sql(name=tb_name, con=self.__conn, if_exists=how, index=False, chunksize=chunksize)
+            df.to_sql(name=tb_name, con=self.__conn, if_exists=how, index=False, chunksize=chunksize, schema=schema, dtype=dtype)
         except Exception as e:
             raise Exception(str(e)[0:500])
         finally:
@@ -163,7 +163,7 @@ class MySQL(SqlDB):
         super().__init__(**run_param)
         super().set_ext_param(charset=charset)
 
-    def to_db(self, df, tb_name, how, chunksize, fast_load):
+    def to_db(self, df, tb_name, how, chunksize, fast_load, schema, dtype):
         if fast_load:
             super().set_ext_param(charset=self.__charset, local_infile='1')
             tmp_file_path = self.get_tmp_file()
@@ -181,7 +181,7 @@ class MySQL(SqlDB):
                 except Exception as e:
                     print(f'Failed to delete temporary file: {e}')
         else:
-            super().to_db(df=df, tb_name=tb_name, how=how, chunksize=chunksize)
+            super().to_db(df=df, tb_name=tb_name, how=how, chunksize=chunksize, schema=schema, dtype=dtype)
 
 
 class PostgresSQL(SqlDB):
@@ -220,7 +220,7 @@ class Clickhouse(SqlDB):
         run_param['db_type'] = 'clickhouse'
         super().__init__(**run_param)
 
-    def to_db(self, df, tb_name, how, chunksize, fast_load):
+    def to_db(self, df, tb_name, how, chunksize, fast_load, schema, dtype):
         if fast_load:
             import csv
             file_path = self.get_tmp_file()
@@ -236,7 +236,7 @@ class Clickhouse(SqlDB):
             except:
                 pass
         else:
-            super().to_db(df=df, tb_name=tb_name, how=how, chunksize=chunksize)
+            super().to_db(df=df, tb_name=tb_name, how=how, chunksize=chunksize, schema=schema, dtype=dtype)
 
 
 class Sqlite(SqlDB):
