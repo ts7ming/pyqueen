@@ -91,6 +91,10 @@ class TimeKit:
             return str(new_time)[0:8]
         elif format == 10:
             return self.str(str(new_time)[0:8])
+        elif format == 14:
+            return str(new_time)[0:14]
+        elif format == 19:
+            return self.str(str(new_time))
         else:
             return new_time
 
@@ -290,6 +294,8 @@ class TimeKit:
 #     tk.yesterday8,
 #     tk.yesterday10,
 #     tk.delta('days',-2, 8),
-#     tk.delta('days',5, 10)
+#     tk.delta('days',5, 10),
+#     tk.delta('minutes',-5,19),
+#     tk.delta('minutes',-5,14)
 # ]
 # print(data)
