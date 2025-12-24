@@ -90,7 +90,7 @@ class SqlDB:
                 sql = text(sql)
                 df = pd.read_sql(sql, self.__conn)
             except Exception as e:
-                raise Exception(str(e)[0:500])
+                raise Exception(str(e))
             finally:
                 self.close_conn()
             return df
@@ -100,7 +100,7 @@ class SqlDB:
         try:
             df.to_sql(name=tb_name, con=self.__conn, if_exists=how, index=False, chunksize=chunksize, schema=schema, dtype=dtype)
         except Exception as e:
-            raise Exception(str(e)[0:500])
+            raise Exception(str(e))
         finally:
             self.close_conn()
 
