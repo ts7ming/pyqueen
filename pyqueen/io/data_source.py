@@ -9,7 +9,6 @@ from pyqueen.io.excel import *
 from pyqueen.io.ftp import *
 from pyqueen.io.web import *
 
-
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 warnings.simplefilter(action='always', category=PendingDeprecationWarning)
 
@@ -49,29 +48,34 @@ class DataSource(DsLog, DsPlugin, DsConfig):
                  ):
         super().__init__()
         if server_id is None:
-            self.server_id = '[' + str(username) + ']@['+str(host)+']:['+str(port)+']/['+str(db_name)+']'
+            self.server_id = '[' + str(username) + ']@[' + str(host) + ']:[' + str(port) + ']/[' + str(db_name) + ']'
         else:
             self.server_id = server_id
         self.conn_type = str(conn_type).lower()
+        self.host = host
+        self.username = username
+        self.password = password
+        self.port = port
+        self.db_name = db_name
         self.__init_params = {k: v for k, v in locals().items()}
-        
+
         if self.conn_type is None and db_type is None:
             raise ValueError("conn_type must be specified")
-        
+
         if self.conn_type not in __support_conn_type__:
             raise ValueError(self.conn_type + " is not supported")
 
         if db_type is not None and self.conn_type is None:
             warnings.warn("Recommend using the 'conn_type' field instead of 'db_type'", PendingDeprecationWarning)
-            self.conn_type = db_type
+            conn_type = db_type
 
         if conn_type == 'sqlite' and host is not None and file_path is None:
             self.__init_params['file_path'] = host
 
-
         self.conn_type = str(conn_type).lower()
         self.operator_class = __conn_type_mapping__[self.conn_type]
         self.__build_conn()
+        self.user_vars = {}
 
     def __build_conn(self):
         req_params = inspect.signature(self.operator_class).parameters.keys()
@@ -80,7 +84,7 @@ class DataSource(DsLog, DsPlugin, DsConfig):
 
     def _get_engine(self):
         return self.operator._get_engine()
-    
+
     def _create_conn(self):
         try:
             self.operator.create_conn()
@@ -112,7 +116,7 @@ class DataSource(DsLog, DsPlugin, DsConfig):
                 elif fd == 'tb_name':
                     fd = 'table_name'
                 self.etl_log[fd] = fd_v
-                
+
         req_params = list(inspect.signature(func).parameters.keys())
         run_param = {k: v for k, v in kwargs.items() if k in req_params}
         ret = func(**run_param)

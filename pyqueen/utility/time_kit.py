@@ -1,6 +1,28 @@
 import datetime
 import time
 from dateutil.relativedelta import relativedelta
+from functools import wraps
+
+
+def record_time():
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            start_datetime = datetime.datetime.fromtimestamp(start_time)
+            result = func(*args, **kwargs)
+
+            end_time = time.time()
+            end_datetime = datetime.datetime.fromtimestamp(end_time)
+            duration = end_time - start_time
+            start_time_str = start_datetime.strftime('%Y-%m-%d %H:%M:%S')
+            end_time_str = end_datetime.strftime('%Y-%m-%d %H:%M:%S')
+            msg = {"start_time": start_time_str, "end_time": end_time_str, "duration": duration}
+            return result, msg
+
+        return wrapper
+
+    return decorator
 
 
 class TimeKit:
@@ -87,7 +109,7 @@ class TimeKit:
 
     def delta(self, flag, value, format=8):
         new_time = self.time_delta(self.now, flag, value)
-        if format==8:
+        if format == 8:
             return str(new_time)[0:8]
         elif format == 10:
             return self.str(str(new_time)[0:8])
@@ -183,7 +205,8 @@ class TimeKit:
         if len(time_value) == 8:
             return time_value[0:4] + sep + time_value[4:6] + sep + time_value[6:8]
         elif len(time_value) == 14:
-            return time_value[0:4] + sep + time_value[4:6] + sep + time_value[6:8] + ' ' + time_value[8:10] + ':' + time_value[10:12] + ':' + time_value[12:14]
+            return time_value[0:4] + sep + time_value[4:6] + sep + time_value[6:8] + ' ' + time_value[8:10] + ':' + time_value[
+                                                                                                                    10:12] + ':' + time_value[12:14]
         else:
             return None
 
@@ -194,10 +217,11 @@ class TimeKit:
         if len(time_value) == 8:
             return time_value[0:4] + sep + time_value[4:6] + sep + time_value[6:8]
         elif len(time_value) == 14:
-            return time_value[0:4] + sep + time_value[4:6] + sep + time_value[6:8] + ' ' + time_value[8:10] + ':' + time_value[10:12] + ':' + time_value[12:14]
+            return time_value[0:4] + sep + time_value[4:6] + sep + time_value[6:8] + ' ' + time_value[8:10] + ':' + time_value[
+                                                                                                                    10:12] + ':' + time_value[12:14]
         else:
             return None
-        
+
     @classmethod
     def date_div(self, start, end, num, by='groups'):
         """ 指定分段数 拆分时间段 """
