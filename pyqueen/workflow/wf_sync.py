@@ -162,6 +162,7 @@ class WfSync:
                 "password": self.to_ds.password,
                 "column": self.to_columns,
                 "preSql": [before_write],
+                "postSql": [after_write],
                 "connection": [{"jdbcUrl": url, "table": [self.to_table], "selectedDatabase": self.to_ds.db_name}],
                 "loadUrl": [self.to_ds.host + ':' + self.to_ds.user_vars['be_port']],
             }
