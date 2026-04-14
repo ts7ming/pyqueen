@@ -8,7 +8,7 @@ setup(
     long_description=open("README.md", encoding='utf-8').read(),
     long_description_content_type="text/markdown",
     author='ts7ming',
-    author_email='qiming.ma@outlook.com',
+    author_email='ts7ming@outlook.com',
     packages=find_packages(),
     python_requires=">=3.4",
     classifiers=[
