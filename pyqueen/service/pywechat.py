@@ -8,10 +8,6 @@ import base64
 
 
 class Wechat:
-    """
-    发送微信
-    """
-
     def __init__(self, key):
         """
         初始化
