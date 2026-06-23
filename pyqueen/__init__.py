@@ -1,6 +1,7 @@
 from .io.data_source import DataSource
 from .analysis.model import Model
 from .service.pydingtalk import Dingtalk
+from .service.pydingapp import DingtaskApp
 from .service.pyemail import Email
 from .service.pywechat import Wechat
 from .service.showdoc import Showdoc
