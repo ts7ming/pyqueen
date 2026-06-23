@@ -2,12 +2,12 @@ import inspect
 import os
 import sys
 import warnings
-from pyqueen.io.ds_plugin import DsLog, DsPlugin, DsConfig
-from pyqueen.io.sqldb import *
-from pyqueen.io.kvdb import *
-from pyqueen.io.excel import *
-from pyqueen.io.ftp import *
-from pyqueen.io.web import *
+from .ds_plugin import DsLog, DsPlugin, DsConfig
+from .sqldb import *
+from .kvdb import *
+from .excel import *
+from .ftp import *
+from .web import *
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 warnings.simplefilter(action='always', category=PendingDeprecationWarning)
@@ -235,6 +235,18 @@ class DataSource(DsLog, DsPlugin, DsConfig):
         log_field = ['file_path', 'conn_type']
         ret = self.__run(log_field=log_field, sheet_list=sheet_list, file_path=file_path, fillna=fillna, fmt=fmt, font=font,
                          font_color=font_color, font_size=font_size, column_width=column_width)
+        return ret
+    
+    def update_excel(self, file_path, script):
+        """
+        write a pd.DataFrame to excel file
+        :param file_path: if None, use self.file_path
+        :param script: action_list
+
+        :return:
+        """
+        log_field = ['file_path', 'conn_type', 'script']
+        ret = self.__run(log_field=log_field, file_path=file_path, script=script)
         return ret
 
     def download_dir(self, local_dir, remote_dir):

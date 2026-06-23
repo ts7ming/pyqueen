@@ -100,8 +100,8 @@ class Excel:
         wb.close()
         return file_path
 
-    @staticmethod
-    def update_excel(file_path, script):
+
+    def update_excel(self, file_path=None, script=None):
         import openpyxl
         import re
         from openpyxl.utils import column_index_from_string
@@ -127,6 +127,11 @@ class Excel:
               2. 工作表刷新: {"action": "update", "sheet": "Sheet1"} - 只刷新指定工作表
               3. 范围刷新: {"action": "update", "sheet": "Sheet1", "r": "A3:B6"} - 只刷新指定范围
         """
+
+        if file_path is not None:
+            file_path = self.__check_path(file_path)
+        else:
+            file_path = self.file_path
         # 加载工作簿
         try:
             wb = openpyxl.load_workbook(file_path)
