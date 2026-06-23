@@ -4,8 +4,8 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from pyqueen.io.excel import Excel
-from pyqueen.utility.time_kit import TimeKit
+from .excel import Excel
+from ..utility.time_kit import TimeKit
 
 
 class DsLog:

@@ -28,6 +28,7 @@ pip install pyqueen
 - pyqueen.DataSource
 - pyqueen.Model
 - pyqueen.Dingtalk
+- pyqueen.DingtalkApp
 - pyqueen.Email
 - pyqueen.Wechat
 - pyqueen.Showdoc

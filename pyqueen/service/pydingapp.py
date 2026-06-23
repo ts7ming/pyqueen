@@ -1,4 +1,3 @@
-from tkinter import NO
 import requests
 import json
 

@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, text
 import pandas as pd
 import inspect
 from urllib.parse import quote_plus, urlencode
-
+from .excel import Excel
 
 class SqlDB:
     def __init__(self,
@@ -80,7 +80,6 @@ class SqlDB:
 
     def read_sql(self, sql, data=None, engine='sqlite'):
         if data is not None:
-            from pyqueen.io.excel import Excel
             e = Excel()
             df = e.read_sql(sql=sql, data=data, engine=engine)
             return df
@@ -144,15 +143,18 @@ class SqlDB:
 
     @staticmethod
     def to_excel(sheet_list, file_path=None, fillna='', fmt=None, font='微软雅黑', font_color='black', font_size=11, column_width=17):
-        from pyqueen.io.excel import Excel
         e = Excel(file_path=file_path)
         return e.to_excel(sheet_list=sheet_list, fillna=fillna, fmt=fmt, font=font, font_color=font_color, font_size=font_size, column_width=column_width)
 
     @staticmethod
     def read_excel(sheet_name=None, file_path=None):
-        from pyqueen.io.excel import Excel
         e = Excel(file_path=file_path)
         return e.read_excel(sheet_name=sheet_name)
+
+    @staticmethod
+    def update_excel(file_path, script):
+        e = Excel(file_path=file_path)
+        return e.update_excel(script=script)
 
 
 class MySQL(SqlDB):
