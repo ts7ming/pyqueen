@@ -125,50 +125,6 @@ class DsLog:
             self.logger(sortd_log)
         self.etl_log = {}
 
-    def create_log_table(self, table_name='ds_log'):
-        """
-        create log table for DataSource
-        """
-        base_sql = """
-        CREATE TABLE {} (
-            id {} NOT NULL AUTO_INCREMENT,
-            py_path VARCHAR(500) DEFAULT NULL,
-            func_name VARCHAR(100) DEFAULT NULL,
-            start_time DATETIME DEFAULT NULL,
-            end_time DATETIME DEFAULT NULL,
-            duration INT DEFAULT NULL,
-            message VARCHAR(500) DEFAULT NULL,
-            file_path VARCHAR(500) DEFAULT NULL,
-            sql_text VARCHAR(500) DEFAULT NULL,
-            server_id VARCHAR(200) DEFAULT NULL,
-            db_name VARCHAR(50) DEFAULT NULL,
-            table_name VARCHAR(100) DEFAULT NULL,
-            PRIMARY KEY (id)
-        ) {}
-        """
-
-        id_type = ''
-        extra = ''
-        if self.__ds_log.conn_type == 'mysql':
-            id_type = 'BIGINT UNSIGNED'
-            extra = 'ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
-        elif self.__ds_log.conn_type == 'oracle':
-            id_type = 'NUMBER(19)'
-        elif self.__ds_log.conn_type == 'postgresql':
-            id_type = 'SERIAL'
-        elif self.__ds_log.conn_type == 'sqlite':
-            id_type = 'INTEGER'
-            extra = ''
-        elif self.__ds_log.conn_type == 'mssql':
-            id_type = 'INT'
-        else:
-            raise ValueError('Unsupported database type: {}'.format(self.__ds_log.conn_type))
-        sql = base_sql.format(table_name, id_type, extra)
-
-        if self.__ds_log.conn_type == 'mssql':
-            sql = sql.replace('AUTO_INCREMENT', 'IDENTITY(1,1)')
-
-        self.__ds_log.exe_sql(sql)
 
 
 class DsPlugin:
