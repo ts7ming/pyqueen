@@ -378,11 +378,12 @@ date_str = tk.int2str(20200101, sep='-')
     - db_name: (如有) 数据库名
     - table_name: (如有) 表名
 
-## 发送信息
+## 发送数据
 
 - 邮件
 - 钉钉
 - 企业微信
+- 钉钉应用
 
 ```python
 from pyqueen import Email
@@ -425,6 +426,25 @@ dingtalk = Dingtalk(access_token='')
 # mentioned_list: userid的列表，提醒群中的指定成员(@某个成员)，@all表示提醒所有人
 # mentioned_mobile_list: 手机号列表，提醒手机号对应的群成员(@某个成员)，@all表示提醒所有人
 dingtalk.send(content=None, mentioned_list=None, mentioned_mobile_list=None)
+```
+
+
+```python
+from pyqueen import DingtaskApp
+
+app_key = ""
+app_secret = ""
+agent_id = ""
+
+da = DingtaskApp(agent_id=agent_id,app_key=app_key,app_secret=app_secret)
+
+da.set_user_id(user_id='123456')
+# 如果不知道如何获取 user_id 可以用手机号
+# da.set_user_id(moble='1xxxxxx')
+
+folder_path = "我的共享/202606/"
+file_path = "/data/日报.xlsx"
+da.upload_file(remote_folder=folder_path, local_file_path=file_path)
 ```
 
 ## 小工具
