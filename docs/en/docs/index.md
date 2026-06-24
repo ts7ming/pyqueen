@@ -390,13 +390,13 @@ dingtalk.send(content=None, mentioned_list=None, mentioned_mobile_list=None)
 ```
 
 ```python
-from pyqueen import DingtaskApp
+from pyqueen import DingtalkApp
 
 app_key = ""
 app_secret = ""
 agent_id = ""
 
-da = DingtaskApp(agent_id=agent_id,app_key=app_key,app_secret=app_secret)
+da = DingtalkApp(agent_id=agent_id,app_key=app_key,app_secret=app_secret)
 
 da.set_user_id(user_id='123456')
 # if don't know how to get user_id, use moble
