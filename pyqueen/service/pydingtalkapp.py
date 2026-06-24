@@ -2,7 +2,7 @@ import requests
 import json
 
 
-class DingtaskApp:
+class DingtalkApp:
     def __init__(self, agent_id, app_key, app_secret):
         self.agent_id = agent_id
         self.app_key = app_key
@@ -207,7 +207,7 @@ class DingtaskApp:
                            支持 Windows 和 Unix 路径格式
         
         Example:
-            >>> app = DingtaskApp(agent_id="123456", app_key="ding123", app_secret="secret123")
+            >>> app = DingtalkApp(agent_id="123456", app_key="ding123", app_secret="secret123")
             >>> app.set_user_id("user123")
             >>> app.upload_file(
             ...     remote_folder="公共空间/项目文档",
@@ -215,7 +215,7 @@ class DingtaskApp:
             ... )
         """
         if self.user_id is None:
-            raise Exception('请设置用户: DingtaskApp.set_user_id')
+            raise Exception('请设置用户: DingtalkApp.set_user_id')
         # 解析远程文件夹路径（空间名/文件夹路径）
         if '/' in remote_folder:
             parts = remote_folder.split('/', 1)
